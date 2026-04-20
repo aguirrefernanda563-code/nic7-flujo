@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bosque de los Balances — Escape Room Contable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+  :root {
+    --forest-dark: #0a1a0f;
+    --forest-mid: #122a1a;
+    --forest-green: #1a3d25;
+    --forest-light: #2d6b3a;
+    --gold: #c9a227;
+    --gold-light: #f0c040;
+    --parchment: #f5e6c8;
+    --parchment-dark: #d4b896;
+    --ink: #2c1810;
+    --danger: #c0392b;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --magic-blue: #4a90d9;
+    --magic-purple: #8e44ad;
+    --particle-green: #39ff14;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IM Fell English', Georgia, serif;
+    background: var(--forest-dark);
+    color: var(--parchment);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== CANVAS DE PARTÍCULAS ===== */
+  #particles-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ===== FONDO BOSQUE ===== */
+  .forest-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(26,61,37,0.6) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(18,42,26,0.8) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 90%, rgba(10,26,15,0.9) 0%, transparent 60%),
+      linear-gradient(180deg, #050e08 0%, #0a1a0f 30%, #0d2014 70%, #050e08 100%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Árboles pixel en el fondo */
+  .forest-bg::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0;
+    width: 100%; height: 40%;
+    background:
+      /* Árbol izq */ linear-gradient(to top, #0d2014 0%, transparent 100%) no-repeat 5% 100% / 30px 180px,
+      linear-gradient(to top, #122a1a 0%, transparent 100%) no-repeat 3% 100% / 15px 120px,
+      linear-gradient(to top, #1a3d25 0%, transparent 100%) no-repeat 8% 100% / 20px 140px,
+      /* Árbol der */ linear-gradient(to top, #0d2014 0%, transparent 100%) no-repeat 92% 100% / 25px 160px,
+      linear-gradient(to top, #122a1a 0%, transparent 100%) no-repeat 95% 100% / 18px 130px;
+    opacity: 0.6;
+  }
+
+  /* ===== CONTENEDOR PRINCIPAL ===== */
+  .game-container {
+    position: relative; z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  /* ===== PANTALLAS ===== */
+  .screen { display: none; animation: fadeIn 0.6s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== HUD - BARRA SUPERIOR ===== */
+  #hud {
+    display: none;
+    position: sticky; top: 10px; z-index: 100;
+    background: rgba(10,26,15,0.95);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(201,162,39,0.3), inset 0 0 30px rgba(0,0,0,0.5);
+  }
+  #hud.hidden { display: none !important; }
+
+  .hud-timer {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    text-shadow: 0 0 10px rgba(240,192,64,0.7);
+    min-width: 90px;
+    text-align: center;
+  }
+  .hud-timer.danger { color: var(--danger); text-shadow: 0 0 10px rgba(192,57,43,0.8); animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+  .hud-lives { display: flex; gap: 8px; align-items: center; }
+  .lantern { font-size: 1.5rem; transition: all 0.3s; filter: drop-shadow(0 0 6px #f39c12); }
+  .lantern.off { filter: grayscale(1) opacity(0.3); }
+
+  .hud-info { font-size: 0.85rem; color: var(--parchment-dark); text-align: center; }
+  .hud-relics { display: flex; gap: 4px; margin-top: 4px; }
+  .relic-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 1px solid var(--gold);
+    background: transparent;
+    transition: all 0.3s;
+  }
+  .relic-dot.collected { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
+  .hud-progress { font-size: 0.8rem; color: var(--parchment-dark); }
+
+  /* ===== TÍTULO ===== */
+  .game-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    text-shadow: 0 0 20px rgba(201,162,39,0.5), 2px 2px 4px rgba(0,0,0,0.8);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .game-subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    text-align: center;
+    color: var(--parchment-dark);
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+
+  /* ===== PERGAMINO ===== */
+  .parchment-card {
+    background:
+      linear-gradient(135deg, #f5e6c8 0%, #ead5a8 30%, #f0ddb8 60%, #e8d4a0 100%);
+    border: 3px solid var(--parchment-dark);
+    border-radius: 8px;
+    padding: 30px;
+    color: var(--ink);
+    position: relative;
+    box-shadow:
+      0 4px 20px rgba(0,0,0,0.6),
+      inset 0 0 40px rgba(180,140,80,0.2);
+    margin-bottom: 20px;
+  }
+  .parchment-card::before, .parchment-card::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #8b6914, #5a4209);
+    box-shadow: 0 0 8px rgba(139,105,20,0.5);
+  }
+  .parchment-card::before { top: -10px; left: -10px; }
+  .parchment-card::after { top: -10px; right: -10px; }
+
+  /* ===== INPUTS ===== */
+  .input-group { margin-bottom: 20px; }
+  .input-group label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .input-group input, .input-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.7);
+    border: 2px solid var(--parchment-dark);
+    border-radius: 6px;
+    font-family: 'IM Fell English', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .input-group input:focus, .input-group select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(201,162,39,0.3);
+  }
+
+  /* ===== BOTONES ===== */
+  .btn {
+    display: inline-block;
+    padding: 14px 32px;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #c9a227, #f0c040, #c9a227);
+    color: var(--ink);
+    box-shadow: 0 4px 15px rgba(201,162,39,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201,162,39,0.6); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #c0392b, #e74c3c, #c0392b);
+    color: white;
+    box-shadow: 0 4px 15px rgba(192,57,43,0.4);
+  }
+  .btn-danger:hover { transform: translateY(-2px); }
+
+  .btn-forest {
+    background: linear-gradient(135deg, #1a3d25, #2d6b3a, #1a3d25);
+    color: var(--gold-light);
+    border: 2px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(26,61,37,0.5);
+  }
+  .btn-forest:hover { background: linear-gradient(135deg, #2d6b3a, #3d8b4a, #2d6b3a); transform: translateY(-2px); }
+
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  /* ===== MAPA DEL BOSQUE ===== */
+  .forest-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    padding: 10px;
+  }
+
+  .station-card {
+    background: linear-gradient(135deg, rgba(18,42,26,0.9), rgba(26,61,37,0.8));
+    border: 2px solid var(--forest-light);
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .station-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 0%, rgba(201,162,39,0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .station-card:hover::before { opacity: 1; }
+  .station-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(201,162,39,0.3);
+  }
+  .station-card.completed {
+    border-color: var(--success);
+    background: linear-gradient(135deg, rgba(39,174,96,0.2), rgba(26,61,37,0.8));
+  }
+  .station-card.completed::after {
+    content: '✓';
+    position: absolute; top: 8px; right: 12px;
+    color: var(--success);
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  .station-card.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.7);
+  }
+
+  .station-icon { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+  .station-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold-light);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .station-desc { font-size: 0.75rem; color: var(--parchment-dark); font-style: italic; }
+  .station-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-family: 'Cinzel', serif;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .badge-activo { background: rgba(74,144,217,0.3); color: #7fc3f5; border: 1px solid #4a90d9; }
+  .badge-pasivo { background: rgba(192,57,43,0.3); color: #f1948a; border: 1px solid #c0392b; }
+  .badge-patrimonio { background: rgba(142,68,173,0.3); color: #c39bd3; border: 1px solid #8e44ad; }
+  .badge-ingreso { background: rgba(39,174,96,0.3); color: #82e0aa; border: 1px solid #27ae60; }
+  .badge-gasto { background: rgba(243,156,18,0.3); color: #f8c471; border: 1px solid #f39c12; }
+
+  /* ===== PANTALLA DE ESTACIÓN ===== */
+  .station-header {
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(201,162,39,0.3);
+  }
+
+  .riddle-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(201,162,39,0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--parchment);
+  }
+  .riddle-box .riddle-intro {
+    color: var(--parchment-dark);
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    font-style: normal;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* ===== PREGUNTAS ===== */
+  .question-section { margin: 20px 0; }
+  .question-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold-light);
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .option-btn {
+    padding: 12px 8px;
+    background: rgba(18,42,26,0.8);
+    border: 2px solid rgba(201,162,39,0.3);
+    border-radius: 8px;
+    color: var(--parchment);
+    font-family: 'IM Fell English', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+  }
+  .option-btn:hover { border-color: var(--gold); background: rgba(26,61,37,0.9); transform: scale(1.03); }
+  .option-btn.selected { border-color: var(--gold); background: rgba(201,162,39,0.2); color: var(--gold-light); }
+  .option-btn.correct { border-color: var(--success); background: rgba(39,174,96,0.2); color: #82e0aa; pointer-events: none; }
+  .option-btn.wrong { border-color: var(--danger); background: rgba(192,57,43,0.2); color: #f1948a; pointer-events: none; }
+  .option-btn:disabled { pointer-events: none; opacity: 0.7; }
+
+  /* ===== FEEDBACK ===== */
+  .feedback-box {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 0.95rem;
+    display: none;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  .feedback-box.success { background: rgba(39,174,96,0.15); border: 1px solid var(--success); color: #82e0aa; display: block; }
+  .feedback-box.error { background: rgba(192,57,43,0.15); border: 1px solid var(--danger); color: #f1948a; display: block; }
+  .feedback-box.info { background: rgba(74,144,217,0.15); border: 1px solid var(--magic-blue); color: #85c1e9; display: block; }
+
+  /* ===== BARRA DE PROGRESO DE PREGUNTA ===== */
+  .step-indicator {
+    display: flex; gap: 8px; margin: 15px 0; align-items: center;
+  }
+  .step-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(201,162,39,0.2);
+    border: 1px solid rgba(201,162,39,0.4);
+    transition: all 0.3s;
+  }
+  .step-dot.active { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+  .step-dot.done { background: var(--success); }
+
+  /* ===== NIVEL FINAL - BALANCE ===== */
+  .balance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+
+  .balance-column {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(201,162,39,0.3);
+    border-radius: 10px;
+    padding: 15px;
+  }
+  .balance-column h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold-light);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(201,162,39,0.3);
+    letter-spacing: 2px;
+  }
+
+  .balance-item {
+    background: linear-gradient(135deg, #f5e6c8, #ead5a8);
+    border: 1px solid var(--parchment-dark);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    cursor: grab;
+    color: var(--ink);
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+  }
+  .balance-item:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .balance-item.dragging { opacity: 0.5; cursor: grabbing; }
+
+  .balance-drop-zone {
+    min-height: 80px;
+    border: 2px dashed rgba(201,162,39,0.3);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    transition: all 0.3s;
+  }
+  .balance-drop-zone.drag-over { border-color: var(--gold); background: rgba(201,162,39,0.05); }
+  .balance-drop-zone-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(201,162,39,0.5);
+    font-family: 'Cinzel', serif;
+    padding: 10px 0;
+  }
+
+  .balance-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 2px solid rgba(201,162,39,0.5);
+    margin-top: 10px; padding-top: 10px;
+    font-family: 'Cinzel', serif; font-weight: 700;
+    color: var(--gold-light);
+    font-size: 0.9rem;
+  }
+
+  /* ===== CÓDIGO FINAL ===== */
+  .code-display {
+    text-align: center;
+    padding: 30px;
+  }
+  .escape-code {
+    font-family: 'Courier New', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    background: rgba(0,0,0,0.5);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    padding: 16px 24px;
+    letter-spacing: 4px;
+    display: inline-block;
+    margin: 20px 0;
+    text-shadow: 0 0 10px rgba(240,192,64,0.5);
+    word-break: break-all;
+  }
+
+  .score-stars { font-size: 2rem; margin: 10px 0; }
+
+  /* ===== ANIMACIÓN UNLOCK ===== */
+  @keyframes unlockFlash {
+    0% { background: rgba(39,174,96,0) }
+    30% { background: rgba(39,174,96,0.2) }
+    100% { background: rgba(39,174,96,0) }
+  }
+  .unlock-flash { animation: unlockFlash 1.5s ease; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center; justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: linear-gradient(135deg, #0d2014, #1a3d25);
+    border: 3px solid var(--gold);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(201,162,39,0.3);
+    animation: slideIn 0.4s ease;
+  }
+  .modal-box h2 { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.8rem; margin-bottom: 16px; }
+  .modal-box p { color: var(--parchment-dark); margin-bottom: 20px; line-height: 1.7; }
+
+  /* ===== TROPHY / ESTRELLAS ===== */
+  .trophy-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .game-title { font-size: 1.8rem; }
+    .forest-map { grid-template-columns: repeat(2, 1fr); }
+    .balance-grid { grid-template-columns: 1fr; }
+    .hud-timer { font-size: 1.4rem; }
+    .options-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ===== TABLA CONTABLE ===== */
+  .accounting-table {
+    width: 100%; border-collapse: collapse; margin: 15px 0;
+    font-size: 0.85rem;
+  }
+  .accounting-table th, .accounting-table td {
+    border: 1px solid rgba(201,162,39,0.3);
+    padding: 8px 12px;
+    text-align: center;
+  }
+  .accounting-table th {
+    background: rgba(201,162,39,0.15);
+    font-family: 'Cinzel', serif;
+    color: var(--gold-light);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+  .accounting-table td { color: var(--parchment); }
+  .accounting-table .td-account { text-align: left; color: var(--parchment-dark); }
+
+  /* ===== DRAG & DROP BALANCE ===== */
+  .draggable-pool {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 15px 0;
+    min-height: 50px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px dashed rgba(201,162,39,0.2);
+  }
+
+  /* scrollbar style */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--forest-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--forest-light); border-radius: 3px; }
+
+  .info-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: 10px 0; }
+  .info-item { text-align: center; }
+  .info-item .val { font-size: 1.4rem; font-weight: 700; color: var(--gold-light); font-family: 'Cinzel', serif; }
+  .info-item .lbl { font-size: 0.75rem; color: var(--parchment-dark); }
+</style>
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+<div class="forest-bg"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div>
+    <div class="hud-timer" id="timer">5:00</div>
+    <div style="font-size:0.65rem;color:var(--parchment-dark);text-align:center;font-family:'Cinzel',serif">TIEMPO</div>
+  </div>
+  <div style="text-align:center">
+    <div class="hud-relics" id="relic-indicators"></div>
+    <div style="font-size:0.7rem;color:var(--parchment-dark);margin-top:4px;font-family:'Cinzel',serif">RELIQUIAS</div>
+  </div>
+  <div>
+    <div class="hud-lives" id="lanterns"></div>
+    <div style="font-size:0.65rem;color:var(--parchment-dark);text-align:center;font-family:'Cinzel',serif">LINTERNAS</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 1: INTRO -->
+<!-- ============================================================ -->
+<div id="screen-intro" class="screen active game-container">
+  <div style="text-align:center;padding:30px 0 20px">
+    <div style="font-size:4rem;margin-bottom:10px">🌲</div>
+    <h1 class="game-title">El Bosque<br>de los Balances</h1>
+    <p class="game-subtitle">— Escape Room Contable —</p>
+  </div>
+
+  <div class="parchment-card">
+    <div style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--ink);text-align:center;letter-spacing:3px;margin-bottom:16px;opacity:0.7">✦ HISTORIA ✦</div>
+    <p style="line-height:1.8;color:var(--ink);font-size:1rem">
+      Has entrado en el <strong>Bosque de los Balances</strong>, un lugar mágico donde las cuentas contables cobran vida. Una maldición antigua ha atrapado a los viajeros que no conocen los secretos de las finanzas.<br><br>
+      Para escapar, debes visitar <strong>5 estaciones del bosque</strong> y recolectar una <strong>Reliquia Contable</strong> en cada una, demostrando tu conocimiento. Finalmente, deberás completar el <strong>Balance de Apertura</strong> para abrir la puerta de salida.<br><br>
+      <em>Tienes 5 minutos y 3 linternas. ¡El bosque se oscurece pronto!</em>
+    </p>
+  </div>
+
+  <div class="parchment-card">
+    <div style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--ink);text-align:center;letter-spacing:3px;margin-bottom:20px;opacity:0.7">✦ IDENTIFÍCATE ✦</div>
+    <div class="input-group">
+      <label>Tu Nombre de Explorador</label>
+      <input type="text" id="player-name" placeholder="Escribe tu nombre completo..." maxlength="50">
+    </div>
+    <div class="input-group">
+      <label>Tu Sección</label>
+      <input type="text" id="player-section" placeholder="Ej: Contabilidad I - Sección B" maxlength="40">
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn btn-primary" onclick="startGame()" style="width:100%;font-size:1.1rem;padding:16px">
+        🗡️ ¡Entrar al Bosque!
+      </button>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:20px">
+    <div style="display:flex;justify-content:center;gap:30px;flex-wrap:wrap">
+      <div style="text-align:center"><span style="font-size:1.5rem">⏰</span><br><span style="font-size:0.8rem;color:var(--parchment-dark)">5 minutos</span></div>
+      <div style="text-align:center"><span style="font-size:1.5rem">🔦</span><br><span style="font-size:0.8rem;color:var(--parchment-dark)">3 linternas</span></div>
+      <div style="text-align:center"><span style="font-size:1.5rem">💎</span><br><span style="font-size:0.8rem;color:var(--parchment-dark)">5 reliquias</span></div>
+      <div style="text-align:center"><span style="font-size:1.5rem">📜</span><br><span style="font-size:0.8rem;color:var(--parchment-dark)">1 balance</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 2: MAPA -->
+<!-- ============================================================ -->
+<div id="screen-map" class="screen game-container">
+  <div style="text-align:center;margin-bottom:20px">
+    <h2 class="game-title" style="font-size:1.8rem">🗺️ Mapa del Bosque</h2>
+    <p class="game-subtitle" style="font-size:0.9rem" id="map-greeting">Elige una estación para comenzar</p>
+  </div>
+
+  <div class="forest-map" id="stations-grid"></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <div style="font-size:0.8rem;color:var(--parchment-dark);font-style:italic">
+      Recolecta las 5 reliquias para activar el Balance Final
+    </div>
+    <button class="btn btn-primary" id="btn-final" onclick="goToFinal()" style="margin-top:14px;display:none">
+      ⚖️ ¡Resolver Balance de Apertura!
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 3: ESTACIÓN -->
+<!-- ============================================================ -->
+<div id="screen-station" class="screen game-container">
+  <div class="station-header">
+    <div style="font-size:3rem" id="st-icon"></div>
+    <h2 class="game-title" style="font-size:1.6rem" id="st-title"></h2>
+    <p class="game-subtitle" id="st-subtitle"></p>
+  </div>
+
+  <div class="riddle-box">
+    <div class="riddle-intro">📜 El acertijo del guardián</div>
+    <p id="st-riddle"></p>
+  </div>
+
+  <div id="st-questions"></div>
+
+  <div id="st-feedback" class="feedback-box"></div>
+
+  <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">
+    <button class="btn btn-forest" onclick="backToMap()" style="flex:1">
+      ◀ Volver al Mapa
+    </button>
+    <button class="btn btn-primary" id="btn-collect" onclick="collectRelic()" style="flex:2;display:none">
+      ✨ ¡Recoger Reliquia!
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 4: BALANCE FINAL -->
+<!-- ============================================================ -->
+<div id="screen-final" class="screen game-container">
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="font-size:3rem">⚖️</div>
+    <h2 class="game-title" style="font-size:1.8rem">Balance de Apertura</h2>
+    <p class="game-subtitle">La puerta mágica exige que organices las cuentas correctamente</p>
+  </div>
+
+  <div class="parchment-card" style="padding:20px">
+    <div style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--ink);text-align:center;letter-spacing:2px;margin-bottom:14px;opacity:0.8">
+      📜 Clasifica cada cuenta en su columna correcta del Balance General
+    </div>
+    <p style="color:var(--ink);font-size:0.85rem;margin-bottom:12px;line-height:1.6;font-style:italic">
+      Arrastra cada pergamino a la columna correcta. El lado <strong>izquierdo (Activo)</strong> debe igualar el lado <strong>derecho (Pasivo + Patrimonio)</strong>.
+    </p>
+
+    <div style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink);margin-bottom:8px;font-weight:700">
+      📦 Cuentas por clasificar:
+    </div>
+    <div class="draggable-pool" id="balance-pool"></div>
+
+    <div class="balance-grid">
+      <div class="balance-column">
+        <h3>⬅ ACTIVOS</h3>
+        <div style="font-size:0.72rem;color:rgba(201,162,39,0.7);text-align:center;margin-bottom:8px;font-style:italic">Lo que TENEMOS</div>
+        <div class="balance-drop-zone" id="zone-activo" ondrop="drop(event,'activo')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+          <div class="balance-drop-zone-label" id="lbl-activo">Arrastra los activos aquí</div>
+        </div>
+        <div class="balance-total-row">
+          <span>Total Activos</span>
+          <span id="total-activo">$0</span>
+        </div>
+      </div>
+      <div class="balance-column">
+        <h3>➡ PASIVO + PATRIMONIO</h3>
+        <div style="font-size:0.72rem;color:rgba(201,162,39,0.7);text-align:center;margin-bottom:8px;font-style:italic">Lo que DEBEMOS + Aportación</div>
+        <div class="balance-drop-zone" id="zone-paspatri" ondrop="drop(event,'paspatri')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)">
+          <div class="balance-drop-zone-label" id="lbl-paspatri">Arrastra pasivos y patrimonio aquí</div>
+        </div>
+        <div class="balance-total-row">
+          <span>Total P+P</span>
+          <span id="total-paspatri">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="balance-feedback" class="feedback-box"></div>
+
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn btn-primary" onclick="checkBalance()" style="font-size:1rem;padding:14px 30px">
+        🔓 Verificar Balance y Escapar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 5: VICTORIA -->
+<!-- ============================================================ -->
+<div id="screen-win" class="screen game-container">
+  <div style="text-align:center;padding:30px 0">
+    <span class="trophy-icon">🏆</span>
+    <h1 class="game-title">¡ESCAPASTE!</h1>
+    <p class="game-subtitle">Has dominado el Bosque de los Balances</p>
+  </div>
+
+  <div class="parchment-card">
+    <div style="text-align:center">
+      <div id="win-name" style="font-family:'Cinzel',serif;font-size:1.3rem;color:var(--ink);font-weight:700;margin-bottom:4px"></div>
+      <div id="win-section" style="font-size:0.9rem;color:var(--ink);font-style:italic;margin-bottom:20px"></div>
+
+      <div class="info-row">
+        <div class="info-item">
+          <div class="val" id="win-time"></div>
+          <div class="lbl">Tiempo restante</div>
+        </div>
+        <div class="info-item">
+          <div class="val" id="win-lives"></div>
+          <div class="lbl">Linternas restantes</div>
+        </div>
+        <div class="info-item">
+          <div class="val" id="win-score"></div>
+          <div class="lbl">Puntuación</div>
+        </div>
+      </div>
+
+      <div class="score-stars" id="win-stars"></div>
+
+      <div style="margin:20px 0">
+        <div style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--ink);margin-bottom:8px;letter-spacing:2px">⚔ CÓDIGO DE ESCAPE ⚔</div>
+        <div class="escape-code" id="final-code"></div>
+        <div style="font-size:0.8rem;color:var(--ink);margin-top:8px;font-style:italic">
+          Copia este código y envíaselo a tu profesor como prueba
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="copyCode()" style="margin-right:10px;margin-bottom:10px">
+        📋 Copiar Código
+      </button>
+      <button class="btn btn-forest" onclick="restartGame()" style="margin-bottom:10px">
+        🔄 Jugar de Nuevo
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumen educativo -->
+  <div class="parchment-card">
+    <div style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--ink);text-align:center;letter-spacing:2px;margin-bottom:16px;opacity:0.7">✦ LO QUE APRENDISTE ✦</div>
+    <table class="accounting-table">
+      <thead>
+        <tr>
+          <th>Grupo</th><th>Naturaleza</th><th>Aumenta en</th><th>Disminuye en</th>
+        </tr>
+      </thead>
+      <tbody id="summary-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANTALLA 6: GAME OVER -->
+<!-- ============================================================ -->
+<div id="screen-gameover" class="screen game-container">
+  <div style="text-align:center;padding:30px 0">
+    <div style="font-size:4rem">⏳</div>
+    <h1 class="game-title" style="color:var(--danger)">El Bosque te<br>ha Atrapado</h1>
+    <p class="game-subtitle">Las sombras han consumido la luz</p>
+  </div>
+  <div class="parchment-card" style="text-align:center">
+    <p style="color:var(--ink);line-height:1.8;margin-bottom:24px">
+      No lograste escapar a tiempo. Las cuentas contables aún guardan sus secretos.<br>
+      ¡Inténtalo de nuevo y demuestra que puedes dominar el balance!
+    </p>
+    <button class="btn btn-danger" onclick="restartGame()" style="font-size:1rem;padding:14px 30px">
+      🔥 Intentar de Nuevo
+    </button>
+  </div>
+</div>
+
+<!-- Modal de pérdida de vida -->
+<div class="modal-overlay" id="modal-lost-life">
+  <div class="modal-box">
+    <div style="font-size:3rem;margin-bottom:10px">🔦</div>
+    <h2>¡Linterna Apagada!</h2>
+    <p id="modal-lost-msg">Esa no era la respuesta correcta. Perdiste una linterna.</p>
+    <div class="hud-lives" id="modal-lanterns" style="justify-content:center;margin:16px 0"></div>
+    <button class="btn btn-forest" onclick="closeModal('modal-lost-life')" style="padding:10px 24px">Continuar →</button>
+  </div>
+</div>
+
+<!-- Modal de no quedan vidas en estación -->
+<div class="modal-overlay" id="modal-no-lives">
+  <div class="modal-box">
+    <div style="font-size:3rem;margin-bottom:10px">💀</div>
+    <h2 style="color:var(--danger)">¡Sin Linternas!</h2>
+    <p>Te has quedado sin linternas. Pero el bosque te da una segunda oportunidad en esta estación. ¡Aprende de tus errores!</p>
+    <button class="btn btn-danger" onclick="resetStation()" style="padding:10px 24px">🔄 Reiniciar Estación</button>
+  </div>
+</div>
+
+<!-- Modal de relic recogida -->
+<div class="modal-overlay" id="modal-relic">
+  <div class="modal-box">
+    <div style="font-size:3rem;margin-bottom:10px" id="modal-relic-icon"></div>
+    <h2>¡Reliquia Obtenida!</h2>
+    <p id="modal-relic-msg"></p>
+    <div id="modal-relic-info" style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;margin:10px 0;font-size:0.85rem;color:var(--parchment-dark);text-align:left"></div>
+    <button class="btn btn-primary" onclick="afterCollect()" style="margin-top:10px;padding:10px 24px">¡Continuar! →</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATOS DEL JUEGO
+// ============================================================
+const STATIONS = [
+  {
+    id: 'activo',
+    name: 'Río de los Activos',
+    icon: '🏞️',
+    subtitle: 'Aguas que reflejan tus riquezas',
+    badge: 'badge-activo',
+    badgeLabel: 'ACTIVO',
+    riddle: `En las orillas de este río cristalino, un viajero encontró un "Cofre de Oro" lleno de monedas contantes y sonantes. Junto al cofre, había una "Escritura de Tierras" que decía que el dueño poseía vastas extensiones de bosque. ¿Qué tipo de riquezas son estas?`,
+    relic: '🏅',
+    relicName: 'Medalla del Activo',
+    account: 'Caja / Terrenos',
+    group: 'Activo',
+    nature: 'Deudora (Debe)',
+    explanation: 'Los Activos son todos los BIENES y DERECHOS que posee la empresa. Su naturaleza es DEUDORA: aumentan por el DEBE y disminuyen por el HABER.',
+    questions: [
+      {
+        text: '❓ Pregunta 1: ¿A qué grupo contable pertenece el "Cofre de Oro" y la "Escritura de Tierras"?',
+        options: ['Activo', 'Pasivo', 'Patrimonio', 'Ingreso'],
+        correct: 0,
+        explanation: '✅ ¡Correcto! La Caja (dinero) y los Terrenos son ACTIVOS: bienes que la empresa posee y que generan beneficios futuros.'
+      },
+      {
+        text: '❓ Pregunta 2: Los activos tienen naturaleza DEUDORA. ¿Por qué columna AUMENTAN?',
+        options: ['Por el DEBE (columna izquierda)', 'Por el HABER (columna derecha)', 'No tienen naturaleza', 'Por ambas columnas igual'],
+        correct: 0,
+        explanation: '✅ ¡Exacto! Los activos AUMENTAN por el DEBE (débito, columna izquierda del T-cuenta) y DISMINUYEN por el HABER.'
+      }
+    ]
+  },
+  {
+    id: 'pasivo',
+    name: 'Cueva de las Deudas',
+    icon: '🕳️',
+    subtitle: 'Donde habitan los duendes acreedores',
+    badge: 'badge-pasivo',
+    badgeLabel: 'PASIVO',
+    riddle: `En lo profundo de esta oscura cueva vive el Duende Prestamista. Un explorador anterior dejó aquí un "Mapa de Deuda con Duendes" (préstamo bancario por pagar) y una "Promesa de Pago a Comerciantes" (cuentas por pagar a proveedores). Estas obligaciones lo atan al bosque...`,
+    relic: '💎',
+    relicName: 'Gema del Pasivo',
+    account: 'Préstamos / Cuentas por Pagar',
+    group: 'Pasivo',
+    nature: 'Acreedora (Haber)',
+    explanation: 'Los Pasivos son todas las OBLIGACIONES y DEUDAS de la empresa. Su naturaleza es ACREEDORA: aumentan por el HABER y disminuyen por el DEBE.',
+    questions: [
+      {
+        text: '❓ Pregunta 1: ¿A qué grupo contable pertenece el "Préstamo Bancario" y las "Cuentas por Pagar"?',
+        options: ['Activo', 'Pasivo', 'Patrimonio', 'Gasto'],
+        correct: 1,
+        explanation: '✅ ¡Correcto! Los Préstamos y Cuentas por Pagar son PASIVOS: obligaciones que la empresa debe cumplir en el futuro.'
+      },
+      {
+        text: '❓ Pregunta 2: Los pasivos tienen naturaleza ACREEDORA. ¿Por qué columna AUMENTAN?',
+        options: ['Por el DEBE (columna izquierda)', 'Por el HABER (columna derecha)', 'No se registran en T-cuentas', 'Solo al inicio del período'],
+        correct: 1,
+        explanation: '✅ ¡Exacto! Los pasivos AUMENTAN por el HABER (crédito, columna derecha) y DISMINUYEN por el DEBE.'
+      }
+    ]
+  },
+  {
+    id: 'patrimonio',
+    name: 'Árbol del Patrimonio',
+    icon: '🌳',
+    subtitle: 'El árbol ancestral de los fundadores',
+    badge: 'badge-patrimonio',
+    badgeLabel: 'PATRIMONIO',
+    riddle: `El árbol más antiguo del bosque guarda grabada en su corteza la historia de quienes lo fundaron. Aquí se custodian el "Pergamino de Capital" (la inversión inicial del dueño), las "Semillas de Reserva" (reservas legales) y los "Frutos de Utilidad" (utilidad del período). Estas pertenencias del propietario son sagradas.`,
+    relic: '🌟',
+    relicName: 'Estrella del Patrimonio',
+    account: 'Capital / Utilidades',
+    group: 'Patrimonio',
+    nature: 'Acreedora (Haber)',
+    explanation: 'El Patrimonio representa la PARTICIPACIÓN DE LOS DUEÑOS en la empresa (Capital + Utilidades). Su naturaleza es ACREEDORA: aumenta por el HABER y disminuye por el DEBE.',
+    questions: [
+      {
+        text: '❓ Pregunta 1: ¿A qué grupo pertenece el "Capital del Propietario" y las "Utilidades Retenidas"?',
+        options: ['Activo', 'Pasivo', 'Patrimonio', 'Ingreso'],
+        correct: 2,
+        explanation: '✅ ¡Correcto! El Capital y las Utilidades forman parte del PATRIMONIO: lo que los dueños han aportado o generado.'
+      },
+      {
+        text: '❓ Pregunta 2: El patrimonio es ACREEDOR. ¿Por qué columna AUMENTA su saldo?',
+        options: ['Por el DEBE (izquierda)', 'Por el HABER (derecha)', 'No tiene saldo propio', 'Por ambas partes'],
+        correct: 1,
+        explanation: '✅ ¡Exacto! El Patrimonio AUMENTA por el HABER (como los pasivos, ambos están en el lado derecho del Balance).'
+      }
+    ]
+  },
+  {
+    id: 'ingreso',
+    name: 'Cascada de los Ingresos',
+    icon: '💧',
+    subtitle: 'Donde fluye la riqueza ganada',
+    badge: 'badge-ingreso',
+    badgeLabel: 'INGRESO',
+    riddle: `Esta cascada mágica produce un flujo constante de monedas. Aquí se registran los "Cristales de Ventas" (ventas de mercancía) y los "Diamantes de Servicios Prestados" (honorarios cobrados). Todo lo que el bosque produce y genera para sus habitantes reside en este lugar.`,
+    relic: '💰',
+    relicName: 'Bolsa de los Ingresos',
+    account: 'Ventas / Servicios Prestados',
+    group: 'Ingreso',
+    nature: 'Acreedora (Haber)',
+    explanation: 'Los Ingresos son los BENEFICIOS ECONÓMICOS obtenidos por la empresa (ventas, servicios). Su naturaleza es ACREEDORA: aumentan por el HABER y disminuyen por el DEBE.',
+    questions: [
+      {
+        text: '❓ Pregunta 1: ¿A qué grupo contable pertenecen las "Ventas" y los "Servicios Prestados"?',
+        options: ['Activo', 'Pasivo', 'Ingreso', 'Gasto'],
+        correct: 2,
+        explanation: '✅ ¡Correcto! Las Ventas y Servicios son INGRESOS: incrementan el patrimonio por la actividad normal de la empresa.'
+      },
+      {
+        text: '❓ Pregunta 2: Los ingresos son ACREEDORES. ¿Cómo se REGISTRAN cuando ocurren?',
+        options: ['Se debitan (van al DEBE)', 'Se acreditan (van al HABER)', 'Se registran en el activo', 'No se registran directamente'],
+        correct: 1,
+        explanation: '✅ ¡Exacto! Los Ingresos se ACREDITAN (HABER) cuando se ganan, aumentando el patrimonio de la empresa.'
+      }
+    ]
+  },
+  {
+    id: 'gasto',
+    name: 'Pantano de los Gastos',
+    icon: '🌿',
+    subtitle: 'El lugar donde se consumen los recursos',
+    badge: 'badge-gasto',
+    badgeLabel: 'GASTO',
+    riddle: `En este pantano oscuro habitan los recursos que se consumen. Aquí yacen las "Hojas Marchitas de Sueldos" (gasto por salarios), las "Raíces Secas de Alquiler" (arrendamiento pagado) y los "Hongos de Servicios Públicos" (agua, luz, teléfono). Todo lo que se sacrifica para generar ingresos vive aquí.`,
+    relic: '⚗️',
+    relicName: 'Frasco de los Gastos',
+    account: 'Sueldos / Arrendamiento',
+    group: 'Gasto',
+    nature: 'Deudora (Debe)',
+    explanation: 'Los Gastos son los SACRIFICIOS DE RECURSOS para generar ingresos (sueldos, alquiler, servicios). Su naturaleza es DEUDORA: aumentan por el DEBE y disminuyen por el HABER.',
+    questions: [
+      {
+        text: '❓ Pregunta 1: ¿A qué grupo contable pertenecen los "Sueldos" y el "Arrendamiento Pagado"?',
+        options: ['Activo', 'Pasivo', 'Ingreso', 'Gasto'],
+        correct: 3,
+        explanation: '✅ ¡Correcto! Los Sueldos y el Arrendamiento son GASTOS: sacrificios de recursos necesarios para operar el negocio.'
+      },
+      {
+        text: '❓ Pregunta 2: Los gastos son DEUDORES. ¿Cómo se REGISTRAN cuando se incurren?',
+        options: ['Se acreditan (van al HABER)', 'Se debitan (van al DEBE)', 'Se registran en el patrimonio', 'Se suman a los ingresos'],
+        correct: 1,
+        explanation: '✅ ¡Exacto! Los Gastos se DEBITAN (DEBE) cuando se incurren, disminuyendo el patrimonio de la empresa.'
+      }
+    ]
+  }
+];
+
+const BALANCE_ITEMS = [
+  { id: 'b1', name: '🏦 Caja y Bancos', amount: 15000, zone: 'activo', color: '#e8f4f8' },
+  { id: 'b2', name: '🏗️ Maquinaria y Equipo', amount: 30000, zone: 'activo', color: '#e8f4f8' },
+  { id: 'b3', name: '📦 Inventario de Mercancía', amount: 10000, zone: 'activo', color: '#e8f4f8' },
+  { id: 'b4', name: '🏠 Edificio Propio', amount: 45000, zone: 'activo', color: '#e8f4f8' },
+  { id: 'b5', name: '📝 Préstamo Bancario', amount: 20000, zone: 'paspatri', color: '#fde8e8' },
+  { id: 'b6', name: '🤝 Cuentas por Pagar', amount: 15000, zone: 'paspatri', color: '#fde8e8' },
+  { id: 'b7', name: '👑 Capital del Propietario', amount: 60000, zone: 'paspatri', color: '#f0e8fd' },
+  { id: 'b8', name: '💹 Utilidades del Período', amount: 5000, zone: 'paspatri', color: '#f0e8fd' },
+];
+
+const SUMMARY_DATA = [
+  { group: 'Activo', nature: 'Deudora', increases: 'DEBE ←', decreases: 'HABER →' },
+  { group: 'Pasivo', nature: 'Acreedora', increases: 'HABER →', decreases: 'DEBE ←' },
+  { group: 'Patrimonio', nature: 'Acreedora', increases: 'HABER →', decreases: 'DEBE ←' },
+  { group: 'Ingreso', nature: 'Acreedora', increases: 'HABER →', decreases: 'DEBE ←' },
+  { group: 'Gasto', nature: 'Deudora', increases: 'DEBE ←', decreases: 'HABER →' },
+];
+
+// ============================================================
+// ESTADO DEL JUEGO
+// ============================================================
+let gameState = {
+  playerName: '',
+  playerSection: '',
+  lives: 3,
+  timeLeft: 300,
+  timerInterval: null,
+  collectedRelics: [],
+  currentStation: null,
+  currentQuestionIndex: 0,
+  questionsAnswered: [false, false],
+  stationStartLives: 3,
+  balancePlacements: { activo: [], paspatri: [] },
+  finalScore: 0,
+  gameActive: false,
+  errors: 0
+};
+
+// ============================================================
+// PANTALLAS
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ============================================================
+// INICIO
+// ============================================================
+function startGame() {
+  const name = document.getElementById('player-name').value.trim();
+  const section = document.getElementById('player-section').value.trim();
+  if (!name) { alert('Por favor ingresa tu nombre de explorador.'); return; }
+  if (!section) { alert('Por favor ingresa tu sección.'); return; }
+
+  gameState.playerName = name;
+  gameState.playerSection = section;
+  gameState.lives = 3;
+  gameState.timeLeft = 300;
+  gameState.collectedRelics = [];
+  gameState.errors = 0;
+  gameState.gameActive = true;
+  gameState.balancePlacements = { activo: [], paspatri: [] };
+
+  setupHUD();
+  renderStations();
+  startTimer();
+  showScreen('map');
+
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('map-greeting').textContent =
+    `Bienvenido/a, ${name}. ¡El bosque te aguarda!`;
+}
+
+// ============================================================
+// HUD
+// ============================================================
+function setupHUD() {
+  renderLanterns();
+  renderRelicDots();
+  updateTimerDisplay();
+}
+
+function renderLanterns() {
+  const container = document.getElementById('lanterns');
+  container.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const span = document.createElement('span');
+    span.className = 'lantern' + (i >= gameState.lives ? ' off' : '');
+    span.textContent = '🔦';
+    container.appendChild(span);
+  }
+  // también modal
+  const mc = document.getElementById('modal-lanterns');
+  if (mc) {
+    mc.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const sp = document.createElement('span');
+      sp.className = 'lantern' + (i >= gameState.lives ? ' off' : '');
+      sp.textContent = '🔦';
+      mc.appendChild(sp);
+    }
+  }
+}
+
+function renderRelicDots() {
+  const container = document.getElementById('relic-indicators');
+  container.innerHTML = '';
+  STATIONS.forEach(st => {
+    const dot = document.createElement('div');
+    dot.className = 'relic-dot' + (gameState.collectedRelics.includes(st.id) ? ' collected' : '');
+    dot.title = st.name;
+    container.appendChild(dot);
+  });
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(gameState.timeLeft / 60);
+  const s = gameState.timeLeft % 60;
+  const str = `${m}:${s.toString().padStart(2,'0')}`;
+  const el = document.getElementById('timer');
+  el.textContent = str;
+  el.className = 'hud-timer' + (gameState.timeLeft <= 60 ? ' danger' : '');
+}
+
+function startTimer() {
+  clearInterval(gameState.timerInterval);
+  gameState.timerInterval = setInterval(() => {
+    if (!gameState.gameActive) return;
+    gameState.timeLeft--;
+    updateTimerDisplay();
+    if (gameState.timeLeft <= 0) {
+      clearInterval(gameState.timerInterval);
+      gameOver();
+    }
+  }, 1000);
+}
+
+// ============================================================
+// MAPA
+// ============================================================
+function renderStations() {
+  const grid = document.getElementById('stations-grid');
+  grid.innerHTML = '';
+  STATIONS.forEach(st => {
+    const div = document.createElement('div');
+    const collected = gameState.collectedRelics.includes(st.id);
+    div.className = 'station-card' + (collected ? ' completed' : '');
+    div.onclick = () => goToStation(st.id);
+    div.innerHTML = `
+      <span class="station-icon">${st.icon}</span>
+      <div class="station-name">${st.name}</div>
+      <div class="station-desc">${st.subtitle}</div>
+      <span class="station-badge ${st.badge}">${st.badgeLabel}</span>
+    `;
+    grid.appendChild(div);
+  });
+
+  const allCollected = gameState.collectedRelics.length === STATIONS.length;
+  document.getElementById('btn-final').style.display = allCollected ? 'inline-block' : 'none';
+}
+
+// ============================================================
+// ESTACIÓN
+// ============================================================
+function goToStation(stId) {
+  if (!gameState.gameActive) return;
+  const st = STATIONS.find(s => s.id === stId);
+  gameState.currentStation = stId;
+  gameState.currentQuestionIndex = 0;
+  gameState.questionsAnswered = [false, false];
+  gameState.stationStartLives = gameState.lives;
+
+  document.getElementById('st-icon').textContent = st.icon;
+  document.getElementById('st-title').textContent = st.name;
+  document.getElementById('st-subtitle').textContent = st.subtitle;
+  document.getElementById('st-riddle').textContent = st.riddle;
+  document.getElementById('st-feedback').className = 'feedback-box';
+  document.getElementById('st-feedback').textContent = '';
+  document.getElementById('btn-collect').style.display = 'none';
+
+  renderStationQuestions(st);
+  showScreen('station');
+}
+
+function renderStationQuestions(st) {
+  const container = document.getElementById('st-questions');
+  container.innerHTML = '';
+
+  if (gameState.collectedRelics.includes(st.id)) {
+    container.innerHTML = `<div class="feedback-box success">✅ Ya recogiste la reliquia de esta estación: ${st.relic} ${st.relicName}</div>`;
+    document.getElementById('btn-collect').style.display = 'none';
+    return;
+  }
+
+  const qi = gameState.currentQuestionIndex;
+  const q = st.questions[qi];
+
+  // paso indicador
+  const stepDiv = document.createElement('div');
+  stepDiv.className = 'step-indicator';
+  st.questions.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i < qi ? ' done' : i === qi ? ' active' : '');
+    stepDiv.appendChild(dot);
+  });
+  container.appendChild(stepDiv);
+
+  const qSection = document.createElement('div');
+  qSection.className = 'question-section';
+  qSection.innerHTML = `<div class="question-title">${q.text}</div>`;
+
+  const optGrid = document.createElement('div');
+  optGrid.className = 'options-grid';
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt;
+    btn.onclick = () => answerQuestion(idx, q, st);
+    optGrid.appendChild(btn);
+  });
+  qSection.appendChild(optGrid);
+  container.appendChild(qSection);
+}
+
+function answerQuestion(selectedIdx, question, st) {
+  if (!gameState.gameActive) return;
+  const correct = selectedIdx === question.correct;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === question.correct) b.classList.add('correct');
+    if (i === selectedIdx && !correct) b.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('st-feedback');
+  if (correct) {
+    fb.className = 'feedback-box success';
+    fb.textContent = question.explanation;
+    triggerParticles(true);
+    gameState.questionsAnswered[gameState.currentQuestionIndex] = true;
+
+    setTimeout(() => {
+      gameState.currentQuestionIndex++;
+      if (gameState.currentQuestionIndex < st.questions.length) {
+        renderStationQuestions(st);
+        fb.className = 'feedback-box';
+      } else {
+        fb.className = 'feedback-box success';
+        fb.textContent = '🎉 ¡Respondiste todo correctamente! Puedes recoger la reliquia.';
+        document.getElementById('btn-collect').style.display = 'block';
+      }
+    }, 2000);
+  } else {
+    fb.className = 'feedback-box error';
+    fb.textContent = `❌ Incorrecto. La respuesta era: "${question.options[question.correct]}"`;
+    gameState.errors++;
+    loseLife(st);
+  }
+}
+
+function loseLife(st) {
+  gameState.lives = Math.max(0, gameState.lives - 1);
+  renderLanterns();
+  triggerParticles(false);
+
+  if (gameState.lives === 0) {
+    setTimeout(() => {
+      document.getElementById('modal-no-lives').classList.add('active');
+    }, 800);
+  } else {
+    document.getElementById('modal-lost-msg').textContent =
+      `Respuesta incorrecta. Te quedan ${gameState.lives} linterna${gameState.lives !== 1 ? 's' : ''}.`;
+    setTimeout(() => {
+      document.getElementById('modal-lost-life').classList.add('active');
+    }, 600);
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function resetStation() {
+  closeModal('modal-no-lives');
+  gameState.lives = 3;
+  renderLanterns();
+  const st = STATIONS.find(s => s.id === gameState.currentStation);
+  gameState.currentQuestionIndex = 0;
+  gameState.questionsAnswered = [false, false];
+  document.getElementById('st-feedback').className = 'feedback-box';
+  renderStationQuestions(st);
+}
+
+function collectRelic() {
+  const stId = gameState.currentStation;
+  const st = STATIONS.find(s => s.id === stId);
+  if (gameState.collectedRelics.includes(stId)) return;
+
+  gameState.collectedRelics.push(stId);
+  renderRelicDots();
+  triggerParticles(true);
+  triggerUnlockEffect();
+
+  document.getElementById('modal-relic-icon').textContent = st.relic;
+  document.getElementById('modal-relic-msg').textContent =
+    `¡Has obtenido la "${st.relicName}"! Cuenta: ${st.account}`;
+  document.getElementById('modal-relic-info').innerHTML =
+    `<strong>Grupo:</strong> ${st.group}<br>
+     <strong>Naturaleza:</strong> ${st.nature}<br>
+     <strong>📚 Recuerda:</strong> ${st.explanation}`;
+  document.getElementById('modal-relic').classList.add('active');
+}
+
+function afterCollect() {
+  closeModal('modal-relic');
+  backToMap();
+}
+
+function backToMap() {
+  renderStations();
+  showScreen('map');
+}
+
+// ============================================================
+// NIVEL FINAL - BALANCE
+// ============================================================
+function goToFinal() {
+  if (gameState.collectedRelics.length < STATIONS.length) return;
+  gameState.balancePlacements = { activo: [], paspatri: [] };
+  renderBalancePool();
+  updateBalanceTotals();
+  document.getElementById('balance-feedback').className = 'feedback-box';
+  showScreen('final');
+}
+
+function renderBalancePool() {
+  const pool = document.getElementById('balance-pool');
+  pool.innerHTML = '';
+  // Shuffle
+  const shuffled = [...BALANCE_ITEMS].sort(() => Math.random() - 0.5);
+  shuffled.forEach(item => {
+    const el = createBalanceItem(item);
+    pool.appendChild(el);
+  });
+  // Clear drop zones
+  ['activo','paspatri'].forEach(zid => {
+    const zone = document.getElementById('zone-' + zid);
+    const lbl = document.getElementById('lbl-' + zid);
+    // keep only label
+    zone.innerHTML = '';
+    const l = document.createElement('div');
+    l.className = 'balance-drop-zone-label';
+    l.id = 'lbl-' + zid;
+    l.textContent = zid === 'activo' ? 'Arrastra los activos aquí' : 'Arrastra pasivos y patrimonio aquí';
+    zone.appendChild(l);
+  });
+}
+
+function createBalanceItem(item) {
+  const el = document.createElement('div');
+  el.className = 'balance-item';
+  el.draggable = true;
+  el.dataset.id = item.id;
+  el.dataset.zone = item.zone;
+  el.dataset.amount = item.amount;
+  el.innerHTML = `${item.name} <span style="margin-left:auto;font-size:0.8rem;color:#8b6914">$${item.amount.toLocaleString()}</span>`;
+  el.addEventListener('dragstart', dragStart);
+  return el;
+}
+
+function dragStart(e) {
+  e.dataTransfer.setData('text/plain', e.target.dataset.id);
+  e.target.classList.add('dragging');
+  setTimeout(() => e.target.classList.remove('dragging'), 100);
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, zoneName) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const itemId = e.dataTransfer.getData('text/plain');
+  const item = BALANCE_ITEMS.find(i => i.id === itemId);
+  if (!item) return;
+
+  // Remove from everywhere
+  ['balance-pool','zone-activo','zone-paspatri'].forEach(zid => {
+    const z = document.getElementById(zid);
+    const existing = z.querySelector(`[data-id="${itemId}"]`);
+    if (existing) existing.remove();
+  });
+
+  const zone = document.getElementById('zone-' + zoneName);
+  const newEl = createBalanceItem(item);
+  zone.appendChild(newEl);
+
+  // Update state
+  gameState.balancePlacements.activo = gameState.balancePlacements.activo.filter(id => id !== itemId);
+  gameState.balancePlacements.paspatri = gameState.balancePlacements.paspatri.filter(id => id !== itemId);
+  gameState.balancePlacements[zoneName].push(itemId);
+
+  updateBalanceTotals();
+}
+
+function updateBalanceTotals() {
+  ['activo','paspatri'].forEach(zid => {
+    const zone = document.getElementById('zone-' + zid);
+    let total = 0;
+    zone.querySelectorAll('.balance-item').forEach(el => { total += parseInt(el.dataset.amount); });
+    document.getElementById('total-' + zid).textContent = '$' + total.toLocaleString();
+  });
+}
+
+function checkBalance() {
+  const placedActivo = gameState.balancePlacements.activo;
+  const placedPasPat = gameState.balancePlacements.paspatri;
+  const totalItems = BALANCE_ITEMS.length;
+  const placed = placedActivo.length + placedPasPat.length;
+
+  if (placed < totalItems) {
+    const fb = document.getElementById('balance-feedback');
+    fb.className = 'feedback-box error';
+    fb.textContent = `⚠️ Aún quedan ${totalItems - placed} cuenta(s) sin clasificar. Arrastra todas las cuentas a una columna.`;
+    return;
+  }
+
+  let correct = true;
+  let wrongItems = [];
+  BALANCE_ITEMS.forEach(item => {
+    const inActivo = gameState.balancePlacements.activo.includes(item.id);
+    const inPasPat = gameState.balancePlacements.paspatri.includes(item.id);
+    if (item.zone === 'activo' && !inActivo) { correct = false; wrongItems.push(item.name); }
+    if (item.zone === 'paspatri' && !inPasPat) { correct = false; wrongItems.push(item.name); }
+  });
+
+  const activoTotal = gameState.balancePlacements.activo.reduce((sum, id) => {
+    const it = BALANCE_ITEMS.find(i => i.id === id);
+    return sum + (it ? it.amount : 0);
+  }, 0);
+  const pastriTotal = gameState.balancePlacements.paspatri.reduce((sum, id) => {
+    const it = BALANCE_ITEMS.find(i => i.id === id);
+    return sum + (it ? it.amount : 0);
+  }, 0);
+  const balanced = activoTotal === pastriTotal;
+
+  const fb = document.getElementById('balance-feedback');
+  if (correct && balanced) {
+    fb.className = 'feedback-box success';
+    fb.textContent = '✅ ¡Balance correcto! Activos = Pasivos + Patrimonio = $100,000. ¡La puerta se abre!';
+    triggerParticles(true);
+    setTimeout(() => endGame(), 2000);
+  } else {
+    gameState.errors++;
+    if (!correct) {
+      fb.className = 'feedback-box error';
+      fb.textContent = `❌ Algunas cuentas están mal clasificadas. Revisa: ${wrongItems.slice(0,3).join(', ')}`;
+    } else if (!balanced) {
+      fb.className = 'feedback-box error';
+      fb.textContent = `❌ El balance no cuadra. Activos: $${activoTotal.toLocaleString()} ≠ P+P: $${pastriTotal.toLocaleString()}. Recuerda: Activo = Pasivo + Patrimonio`;
+    }
+    // Penalizar tiempo
+    gameState.timeLeft = Math.max(0, gameState.timeLeft - 20);
+    updateTimerDisplay();
+  }
+}
+
+// ============================================================
+// FIN DEL JUEGO
+// ============================================================
+function endGame() {
+  gameState.gameActive = false;
+  clearInterval(gameState.timerInterval);
+
+  const timeBonus = gameState.timeLeft * 2;
+  const livesBonus = gameState.lives * 200;
+  const errorPenalty = gameState.errors * 30;
+  const baseScore = 1000;
+  const score = Math.max(0, baseScore + timeBonus + livesBonus - errorPenalty);
+  gameState.finalScore = score;
+
+  // Generar código único
+  const code = generateCode(score);
+
+  document.getElementById('win-name').textContent = gameState.playerName;
+  document.getElementById('win-section').textContent = gameState.playerSection;
+  const m = Math.floor(gameState.timeLeft / 60);
+  const s = gameState.timeLeft % 60;
+  document.getElementById('win-time').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  document.getElementById('win-lives').textContent = `${gameState.lives}/3 🔦`;
+  document.getElementById('win-score').textContent = score.toLocaleString();
+  document.getElementById('win-stars').textContent = getStars(score);
+  document.getElementById('final-code').textContent = code;
+
+  // Tabla resumen
+  const tbody = document.getElementById('summary-table');
+  tbody.innerHTML = '';
+  SUMMARY_DATA.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:700">${row.group}</td><td>${row.nature}</td><td style="color:var(--gold-light)">${row.increases}</td><td style="color:var(--parchment-dark)">${row.decreases}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  triggerParticles(true);
+  document.getElementById('hud').classList.add('hidden');
+  showScreen('win');
+}
+
+function generateCode(score) {
+  const name = gameState.playerName.replace(/\s+/g,'').substring(0,6).toUpperCase();
+  const section = gameState.playerSection.replace(/\s+/g,'').substring(0,4).toUpperCase();
+  const ts = Date.now().toString(36).toUpperCase().substring(-4);
+  const scoreStr = score.toString().padStart(5,'0');
+  const hash = btoa(`${name}-${score}-${gameState.lives}-${gameState.timeLeft}`).replace(/[^A-Z0-9]/g,'').substring(0,6);
+  return `${name}-${section}-${scoreStr}-${hash}`;
+}
+
+function getStars(score) {
+  if (score >= 1800) return '⭐⭐⭐⭐⭐';
+  if (score >= 1400) return '⭐⭐⭐⭐';
+  if (score >= 1000) return '⭐⭐⭐';
+  if (score >= 600) return '⭐⭐';
+  return '⭐';
+}
+
+function copyCode() {
+  const code = document.getElementById('final-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    alert('¡Código copiado al portapapeles!\n\n' + code);
+  }).catch(() => {
+    prompt('Copia este código:', code);
+  });
+}
+
+function gameOver() {
+  gameState.gameActive = false;
+  clearInterval(gameState.timerInterval);
+  document.getElementById('hud').classList.add('hidden');
+  showScreen('gameover');
+}
+
+function restartGame() {
+  clearInterval(gameState.timerInterval);
+  gameState = {
+    playerName: '', playerSection: '',
+    lives: 3, timeLeft: 300,
+    timerInterval: null,
+    collectedRelics: [], currentStation: null,
+    currentQuestionIndex: 0,
+    questionsAnswered: [false,false],
+    stationStartLives: 3,
+    balancePlacements: { activo: [], paspatri: [] },
+    finalScore: 0, gameActive: false, errors: 0
+  };
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('player-name').value = '';
+  document.getElementById('player-section').value = '';
+  showScreen('intro');
+}
+
+// ============================================================
+// EFECTOS VISUALES
+// ============================================================
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Particle {
+  constructor(x, y, success) {
+    this.x = x; this.y = y;
+    this.vx = (Math.random() - 0.5) * 4;
+    this.vy = -Math.random() * 5 - 2;
+    this.life = 1;
+    this.decay = 0.02 + Math.random() * 0.02;
+    this.size = Math.random() * 6 + 2;
+    this.color = success
+      ? `hsl(${120 + Math.random() * 40}, 80%, 60%)`
+      : `hsl(${0 + Math.random() * 20}, 80%, 60%)`;
+    this.shape = Math.random() > 0.5 ? 'circle' : 'star';
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    this.vy += 0.1; this.life -= this.decay;
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.life;
+    ctx.fillStyle = this.color;
+    if (this.shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      drawStar(ctx, this.x, this.y, 5, this.size, this.size / 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawStar(ctx, cx, cy, spikes, outerR, innerR) {
+  let rot = Math.PI / 2 * 3;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerR);
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+    rot += step;
+    ctx.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+    rot += step;
+  }
+  ctx.lineTo(cx, cy - outerR);
+  ctx.closePath();
+}
+
+function triggerParticles(success) {
+  const x = canvas.width / 2;
+  const y = canvas.height / 2;
+  for (let i = 0; i < (success ? 60 : 20); i++) {
+    particles.push(new Particle(
+      x + (Math.random() - 0.5) * 200,
+      y + (Math.random() - 0.5) * 100,
+      success
+    ));
+  }
+}
+
+function triggerUnlockEffect() {
+  const screens = document.querySelectorAll('.screen.active');
+  screens.forEach(s => {
+    s.classList.add('unlock-flash');
+    setTimeout(() => s.classList.remove('unlock-flash'), 1500);
+  });
+}
+
+// Animación flotante de hojas en el fondo
+class Leaf {
+  constructor() { this.reset(true); }
+  reset(random) {
+    this.x = Math.random() * canvas.width;
+    this.y = random ? Math.random() * canvas.height : -20;
+    this.size = Math.random() * 8 + 4;
+    this.vx = (Math.random() - 0.5) * 1.5;
+    this.vy = Math.random() * 0.5 + 0.3;
+    this.rot = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.05;
+    this.alpha = 0.1 + Math.random() * 0.15;
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy; this.rot += this.rotSpeed;
+    if (this.y > canvas.height + 20) this.reset(false);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = '#2d6b3a';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+const leaves = Array.from({ length: 30 }, () => new Leaf());
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  leaves.forEach(l => { l.update(); l.draw(); });
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// HUD visibility on scroll
+const hudEl = document.getElementById('hud');
+window.addEventListener('scroll', () => {
+  if (gameState.gameActive) {
+    hudEl.classList.remove('hidden');
+  }
+});
+</script>
+</body>
+</html>
