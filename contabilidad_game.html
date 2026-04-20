@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuditMaster — Domina la Contabilidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --activo: #1e3a8a;
+    --activo-light: #dbeafe;
+    --activo-mid: #3b82f6;
+    --pasivo: #7c3aed;
+    --pasivo-light: #ede9fe;
+    --patrimonio: #0f766e;
+    --patrimonio-light: #ccfbf1;
+    --ingreso: #15803d;
+    --ingreso-light: #dcfce7;
+    --gasto: #f59e0b;
+    --gasto-light: #fef3c7;
+    --gasto-dark: #92400e;
+    --error: #dc2626;
+    --error-light: #fee2e2;
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --radius: 16px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── PANTALLA INICIO ── */
+  #screen-intro {
+    background: linear-gradient(145deg, #0c1a3e 0%, #1e3a8a 50%, #1d4ed8 100%);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #screen-intro::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: rgba(251,191,36,0.07);
+    top: -200px; right: -200px;
+  }
+
+  #screen-intro::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(96,165,250,0.07);
+    bottom: -150px; left: -150px;
+  }
+
+  .intro-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245,158,11,0.2);
+    border: 1px solid rgba(245,158,11,0.4);
+    color: #fbbf24;
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+
+  .intro-title span { color: #fbbf24; }
+
+  .intro-desc {
+    color: rgba(255,255,255,0.65);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .stat-item {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fbbf24;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .name-input-wrap {
+    position: relative;
+    margin-bottom: 1.25rem;
+  }
+
+  .name-input-wrap input {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .name-input-wrap input::placeholder { color: rgba(255,255,255,0.35); }
+  .name-input-wrap input:focus { border-color: #fbbf24; }
+
+  .btn-start {
+    width: 100%;
+    padding: 16px;
+    background: #f59e0b;
+    color: #0c1a3e;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-start:hover { background: #fbbf24; transform: translateY(-2px); }
+  .btn-start:active { transform: translateY(0); }
+  .btn-start:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── PANTALLA JUEGO ── */
+  #screen-game {
+    background: var(--bg);
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .game-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .player-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--activo);
+  }
+
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timer-circle {
+    width: 52px; height: 52px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .timer-circle svg { transform: rotate(-90deg); }
+
+  .timer-circle .track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 4;
+  }
+
+  .timer-circle .progress {
+    fill: none;
+    stroke: var(--activo);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 126;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s;
+  }
+
+  .timer-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .score-display {
+    text-align: right;
+  }
+
+  .score-number {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--activo);
+  }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .combo-badge {
+    background: var(--gasto);
+    color: var(--gasto-dark);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 100px;
+    animation: pulse 0.6s ease;
+    display: none;
+  }
+
+  .combo-badge.show { display: inline-block; }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .game-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--activo);
+    border-radius: 100px;
+    transition: width 1s linear, background 0.5s;
+  }
+
+  .question-card {
+    width: 100%;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--activo);
+    transition: background 0.4s;
+  }
+
+  .step-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 0.75rem;
+  }
+
+  .account-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+  }
+
+  .account-hint {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .question-label {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding: 10px 16px;
+    background: var(--bg);
+    border-radius: 10px;
+    display: inline-block;
+  }
+
+  .selected-group {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .selected-group strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .options-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .options-grid.cols-5 { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+
+  .option-btn {
+    padding: 14px 10px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+
+  .option-btn:active:not(:disabled) { transform: translateY(0); }
+  .option-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+  .option-btn.opt-activo { border-color: var(--activo-mid); color: var(--activo); background: var(--activo-light); }
+  .option-btn.opt-pasivo { border-color: var(--pasivo); color: var(--pasivo); background: var(--pasivo-light); }
+  .option-btn.opt-patrimonio { border-color: var(--patrimonio); color: var(--patrimonio); background: var(--patrimonio-light); }
+  .option-btn.opt-ingreso { border-color: var(--ingreso); color: var(--ingreso); background: var(--ingreso-light); }
+  .option-btn.opt-gasto { border-color: var(--gasto); color: var(--gasto-dark); background: var(--gasto-light); }
+  .option-btn.opt-debe { border-color: #1e3a8a; color: #1e3a8a; background: #dbeafe; }
+  .option-btn.opt-haber { border-color: var(--pasivo); color: var(--pasivo); background: var(--pasivo-light); }
+
+  .option-icon { font-size: 20px; }
+
+  .feedback-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1.5rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .feedback-overlay.show { opacity: 1; pointer-events: auto; }
+
+  .feedback-box {
+    max-width: 400px;
+    width: 100%;
+    border-radius: 20px;
+    padding: 1.75rem 1.5rem;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+
+  .feedback-overlay.show .feedback-box { transform: scale(1); }
+
+  .feedback-box.correct {
+    background: var(--success-light);
+    border: 2px solid var(--success);
+  }
+
+  .feedback-box.wrong {
+    background: var(--error-light);
+    border: 2px solid var(--error);
+  }
+
+  .feedback-icon { font-size: 40px; margin-bottom: 8px; }
+
+  .feedback-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .feedback-box.correct .feedback-title { color: var(--success); }
+  .feedback-box.wrong .feedback-title { color: var(--error); }
+
+  .feedback-msg {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .points-pop {
+    position: fixed;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    pointer-events: none;
+    z-index: 200;
+    animation: flyUp 1.2s ease forwards;
+  }
+
+  @keyframes flyUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-80px) scale(1.3); }
+  }
+
+  /* ── PANTALLA FINAL ── */
+  #screen-final {
+    background: linear-gradient(145deg, #0c1a3e 0%, #1e3a8a 60%, #312e81 100%);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .certificate {
+    background: var(--surface);
+    border-radius: 24px;
+    max-width: 520px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+  }
+
+  .cert-header {
+    background: linear-gradient(135deg, var(--activo) 0%, #1d4ed8 100%);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .cert-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 30px;
+    background: var(--surface);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+
+  .cert-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,0.2);
+    border: 1px solid rgba(245,158,11,0.5);
+    color: #fbbf24;
+    font-size: 11px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+
+  .cert-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .cert-subtitle {
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+  }
+
+  .cert-body {
+    padding: 2rem 1.75rem;
+  }
+
+  .cert-name {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--activo);
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  .cert-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .cert-stat {
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .cert-stat-val {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--activo);
+  }
+
+  .cert-stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .accuracy-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+
+  .accuracy-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--activo-mid), var(--activo));
+    transition: width 1s ease;
+  }
+
+  .grade-box {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+  }
+
+  .grade-letter {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .grade-msg {
+    font-size: 14px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .cert-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-copy {
+    width: 100%;
+    padding: 14px;
+    background: var(--activo);
+    color: white;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-copy:hover { background: #1d4ed8; transform: translateY(-1px); }
+  .btn-copy.copied { background: var(--success); }
+
+  .btn-replay {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-replay:hover { background: var(--bg); color: var(--text); }
+
+  /* SHAKE animation */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+
+  .shake { animation: shake 0.4s ease; }
+
+  @keyframes correct-flash {
+    0% { background: var(--success-light); }
+    100% { background: var(--bg); }
+  }
+
+  .flash-correct { animation: correct-flash 0.5s ease; }
+
+  /* mobile tweaks */
+  @media (max-width: 480px) {
+    .game-header { padding: 10px 14px; }
+    .options-grid.cols-5 { grid-template-columns: 1fr 1fr; }
+    .cert-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PANTALLA INICIO -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-card">
+    <div class="logo-badge">⚡ EdTech · Contabilidad</div>
+    <h1 class="intro-title">Audit<span>Master</span></h1>
+    <p class="intro-desc">Demuestra tu dominio en clasificación de cuentas y la dinámica Debe/Haber. ¡120 segundos para ser el mejor!</p>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-num">24</div>
+        <div class="stat-label">Cuentas</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">120s</div>
+        <div class="stat-label">Tiempo</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">×2</div>
+        <div class="stat-label">Combo</div>
+      </div>
+    </div>
+    <div class="name-input-wrap">
+      <input type="text" id="player-name-input" placeholder="Escribe tu nombre completo..." maxlength="40" />
+    </div>
+    <button class="btn-start" id="btn-start" disabled onclick="startGame()">COMENZAR PARTIDA →</button>
+  </div>
+</div>
+
+<!-- PANTALLA JUEGO -->
+<div id="screen-game" class="screen">
+  <header class="game-header">
+    <div>
+      <div class="score-label">Jugador</div>
+      <div class="player-name" id="hdr-player">—</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="combo-badge" id="combo-badge">🔥 COMBO ×2</span>
+      <div class="timer-wrap">
+        <div class="timer-circle">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle class="track" cx="26" cy="26" r="20"/>
+            <circle class="progress" id="timer-ring" cx="26" cy="26" r="20"/>
+          </svg>
+          <div class="timer-text" id="timer-display">120</div>
+        </div>
+      </div>
+    </div>
+    <div class="score-display">
+      <div class="score-label">Puntaje</div>
+      <div class="score-number" id="score-display">0</div>
+    </div>
+  </header>
+
+  <div class="progress-bar-wrap" style="margin:0 16px;width:calc(100% - 32px);">
+    <div class="progress-bar-fill" id="progress-bar" style="width:100%;"></div>
+  </div>
+
+  <div class="game-body">
+    <div class="question-card" id="question-card">
+      <div class="step-indicator" id="step-indicator">PASO 1 — CLASIFICA EL GRUPO</div>
+      <div class="account-name" id="account-name">Caja</div>
+      <div class="account-hint" id="account-hint">¿A qué grupo pertenece esta cuenta?</div>
+      <div class="question-label" id="question-label">Selecciona el grupo contable:</div>
+      <div class="selected-group" id="selected-group-display" style="display:none;"></div>
+      <div class="options-grid cols-5" id="options-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANTALLA FINAL -->
+<div id="screen-final" class="screen">
+  <div class="certificate" id="certificate">
+    <div class="cert-header">
+      <div class="cert-badge">✦ Certificado de Auditoría</div>
+      <div class="cert-title">AuditMaster</div>
+      <div class="cert-subtitle">Resultado de Evaluación Contable</div>
+    </div>
+    <div class="cert-body">
+      <div class="cert-name" id="cert-name">Estudiante</div>
+      <div class="cert-stats">
+        <div class="cert-stat">
+          <div class="cert-stat-val" id="final-score">0</div>
+          <div class="cert-stat-label">Puntaje Total</div>
+        </div>
+        <div class="cert-stat">
+          <div class="cert-stat-val" id="final-accuracy">0%</div>
+          <div class="cert-stat-label">Precisión</div>
+        </div>
+        <div class="cert-stat">
+          <div class="cert-stat-val" id="final-correct">0</div>
+          <div class="cert-stat-label">Correctas</div>
+        </div>
+        <div class="cert-stat">
+          <div class="cert-stat-val" id="final-total">0</div>
+          <div class="cert-stat-label">Intentos</div>
+        </div>
+      </div>
+      <div class="accuracy-bar">
+        <div class="accuracy-fill" id="accuracy-fill" style="width:0%"></div>
+      </div>
+      <div class="grade-box" id="grade-box">
+        <div class="grade-letter" id="grade-letter">A</div>
+        <div class="grade-msg" id="grade-msg">¡Excelente dominio!</div>
+      </div>
+      <div class="cert-actions">
+        <button class="btn-copy" id="btn-copy" onclick="copyResult()">📋 Copiar Resultado</button>
+        <button class="btn-replay" onclick="replayGame()">↩ Jugar de Nuevo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK OVERLAY -->
+<div class="feedback-overlay" id="feedback-overlay">
+  <div class="feedback-box" id="feedback-box">
+    <div class="feedback-icon" id="feedback-icon">✓</div>
+    <div class="feedback-title" id="feedback-title">¡Correcto!</div>
+    <div class="feedback-msg" id="feedback-msg"></div>
+  </div>
+</div>
+
+<script>
+const ACCOUNTS = [
+  { name: "Caja", group: "Activo", aumenta: "Debe", hint: "Dinero en efectivo físico en la empresa", explanation: "El Activo aumenta por el Debe porque representa lo que la empresa POSEE o tiene a su favor." },
+  { name: "Bancos", group: "Activo", aumenta: "Debe", hint: "Saldo en cuentas bancarias", explanation: "El Activo aumenta por el Debe. Los depósitos bancarios son recursos propios de la empresa." },
+  { name: "Clientes", group: "Activo", aumenta: "Debe", hint: "Dinero que deben los clientes por ventas a crédito", explanation: "Las cuentas por cobrar son Activos: aumentan por el Debe pues son derechos a recibir dinero." },
+  { name: "Mercaderías", group: "Activo", aumenta: "Debe", hint: "Inventario de productos para la venta", explanation: "El inventario es un Activo que aumenta por el Debe al ingresar más mercancía." },
+  { name: "Muebles y Enseres", group: "Activo", aumenta: "Debe", hint: "Mobiliario de la empresa", explanation: "Los bienes tangibles son Activos que aumentan por el Debe al adquirirse." },
+  { name: "Vehículos", group: "Activo", aumenta: "Debe", hint: "Camiones o autos de la empresa", explanation: "Los vehículos son Activos fijos que aumentan por el Debe al comprarse." },
+  { name: "Documentos por Cobrar", group: "Activo", aumenta: "Debe", hint: "Letras o pagarés a favor de la empresa", explanation: "Son derechos exigibles (Activo): aumentan por el Debe al recibir el documento." },
+  { name: "IVA en Compras", group: "Activo", aumenta: "Debe", hint: "Impuesto pagado en compras (crédito fiscal)", explanation: "El IVA en compras es un Activo (crédito fiscal) que aumenta por el Debe." },
+  { name: "Proveedores", group: "Pasivo", aumenta: "Haber", hint: "Deudas con proveedores por compras a crédito", explanation: "El Pasivo aumenta por el Haber porque son OBLIGACIONES externas que la empresa debe pagar." },
+  { name: "Préstamos Bancarios", group: "Pasivo", aumenta: "Haber", hint: "Deuda con el banco", explanation: "Las deudas financieras son Pasivos que aumentan por el Haber al recibir el préstamo." },
+  { name: "Documentos por Pagar", group: "Pasivo", aumenta: "Haber", hint: "Letras o pagarés que la empresa debe pagar", explanation: "Las obligaciones documentadas son Pasivos que aumentan por el Haber." },
+  { name: "IVA en Ventas", group: "Pasivo", aumenta: "Haber", hint: "Impuesto cobrado en ventas (deuda con el fisco)", explanation: "El IVA cobrado en ventas es una deuda con el fisco (Pasivo) y aumenta por el Haber." },
+  { name: "Sueldos por Pagar", group: "Pasivo", aumenta: "Haber", hint: "Remuneraciones pendientes de pago al personal", explanation: "Las remuneraciones por pagar son obligaciones (Pasivo) que aumentan por el Haber." },
+  { name: "Capital Social", group: "Patrimonio", aumenta: "Haber", hint: "Aporte inicial de los socios", explanation: "El Patrimonio aumenta por el Haber porque representa el derecho de los propietarios SOBRE la empresa." },
+  { name: "Reservas", group: "Patrimonio", aumenta: "Haber", hint: "Utilidades retenidas legalmente", explanation: "Las reservas son parte del Patrimonio y aumentan por el Haber al constituirse." },
+  { name: "Utilidad del Ejercicio", group: "Patrimonio", aumenta: "Haber", hint: "Ganancia neta del período", explanation: "La utilidad incrementa el Patrimonio (aumenta por el Haber) al generarse beneficios." },
+  { name: "Ventas", group: "Ingreso", aumenta: "Haber", hint: "Ingresos por venta de mercaderías", explanation: "Los Ingresos aumentan por el Haber porque incrementan el Patrimonio de la empresa." },
+  { name: "Comisiones Ganadas", group: "Ingreso", aumenta: "Haber", hint: "Ingresos por servicios de intermediación", explanation: "Las comisiones son Ingresos: aumentan por el Haber al generar beneficios para la empresa." },
+  { name: "Intereses Ganados", group: "Ingreso", aumenta: "Haber", hint: "Rendimiento de inversiones o préstamos otorgados", explanation: "Los intereses a favor son Ingresos que aumentan por el Haber." },
+  { name: "Sueldos y Salarios", group: "Gasto", aumenta: "Debe", hint: "Remuneraciones pagadas al personal", explanation: "Los Gastos aumentan por el Debe porque CONSUMEN recursos y disminuyen el Patrimonio." },
+  { name: "Arriendo Pagado", group: "Gasto", aumenta: "Debe", hint: "Pago por uso de un local comercial", explanation: "El arriendo es un Gasto que aumenta por el Debe al consumir recursos de la empresa." },
+  { name: "Costo de Ventas", group: "Gasto", aumenta: "Debe", hint: "Valor en libros de la mercadería vendida", explanation: "El Costo de Ventas es un Gasto/Costo que aumenta por el Debe al entregar la mercancía." },
+  { name: "Publicidad y Propaganda", group: "Gasto", aumenta: "Debe", hint: "Inversión en marketing y publicidad", explanation: "Los gastos de marketing consumen recursos y aumentan por el Debe." },
+  { name: "Servicios Básicos", group: "Gasto", aumenta: "Debe", hint: "Agua, luz, teléfono e internet", explanation: "Los servicios básicos son Gastos operativos que aumentan por el Debe." },
+];
+
+const GROUPS = [
+  { label: "Activo", icon: "🏦", cls: "opt-activo" },
+  { label: "Pasivo", icon: "📋", cls: "opt-pasivo" },
+  { label: "Patrimonio", icon: "👑", cls: "opt-patrimonio" },
+  { label: "Ingreso", icon: "📈", cls: "opt-ingreso" },
+  { label: "Gasto", icon: "💸", cls: "opt-gasto" },
+];
+
+const TOTAL_TIME = 120;
+let playerName = "", score = 0, timeLeft = TOTAL_TIME;
+let correctAnswers = 0, totalAttempts = 0;
+let combo = 0, timerInterval = null;
+let currentAccount = null, step = 1;
+let questionStartTime = null;
+let usedIndexes = [];
+
+const $ = id => document.getElementById(id);
+
+// Audio context for beeps
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq, duration, type = 'sine', gain = 0.3) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gainNode.gain.setValueAtTime(gain, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playCorrect() {
+  playBeep(523, 0.1);
+  setTimeout(() => playBeep(659, 0.1), 80);
+  setTimeout(() => playBeep(784, 0.2), 160);
+}
+
+function playWrong() {
+  playBeep(200, 0.15, 'sawtooth');
+  setTimeout(() => playBeep(150, 0.2, 'sawtooth'), 120);
+}
+
+function playCombo() {
+  [523,659,784,1047].forEach((f,i) => setTimeout(() => playBeep(f, 0.15), i*60));
+}
+
+// Input validation
+$('player-name-input').addEventListener('input', function() {
+  $('btn-start').disabled = this.value.trim().length < 2;
+});
+
+$('player-name-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim().length >= 2) startGame();
+});
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function startGame() {
+  playerName = $('player-name-input').value.trim();
+  if (playerName.length < 2) return;
+  score = 0; timeLeft = TOTAL_TIME; correctAnswers = 0;
+  totalAttempts = 0; combo = 0; usedIndexes = [];
+  $('hdr-player').textContent = playerName;
+  $('score-display').textContent = '0';
+  updateTimerUI();
+  showScreen('screen-game');
+  nextQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { timeLeft = 0; endGame(); }
+    updateTimerUI();
+  }, 1000);
+}
+
+function updateTimerUI() {
+  $('timer-display').textContent = timeLeft;
+  const pct = timeLeft / TOTAL_TIME;
+  const circumference = 126;
+  const offset = circumference * (1 - pct);
+  $('timer-ring').style.strokeDashoffset = offset;
+  const ring = $('timer-ring');
+  if (pct > 0.5) ring.style.stroke = '#1e3a8a';
+  else if (pct > 0.25) ring.style.stroke = '#f59e0b';
+  else ring.style.stroke = '#dc2626';
+  $('progress-bar').style.width = (pct * 100) + '%';
+  $('progress-bar').style.background = pct > 0.5 ? '#1e3a8a' : pct > 0.25 ? '#f59e0b' : '#dc2626';
+}
+
+function pickAccount() {
+  if (usedIndexes.length === ACCOUNTS.length) usedIndexes = [];
+  let idx;
+  do { idx = Math.floor(Math.random() * ACCOUNTS.length); } while (usedIndexes.includes(idx));
+  usedIndexes.push(idx);
+  return ACCOUNTS[idx];
+}
+
+function nextQuestion() {
+  currentAccount = pickAccount();
+  step = 1;
+  renderStep();
+}
+
+function renderStep() {
+  const card = $('question-card');
+  const accent = { Activo:'#1e3a8a', Pasivo:'#7c3aed', Patrimonio:'#0f766e', Ingreso:'#15803d', Gasto:'#f59e0b' };
+  const acc = currentAccount;
+
+  $('account-name').textContent = acc.name;
+  $('account-hint').textContent = acc.hint;
+
+  const container = $('options-container');
+  container.innerHTML = '';
+  const selDisp = $('selected-group-display');
+  selDisp.style.display = 'none';
+
+  if (step === 1) {
+    $('step-indicator').textContent = 'PASO 1 — CLASIFICA EL GRUPO';
+    $('question-label').textContent = '¿A qué grupo contable pertenece?';
+    container.className = 'options-grid cols-5';
+    card.style.setProperty('--card-accent', '#1e3a8a');
+    card.querySelector('::before');
+    card.style.borderTop = '';
+    GROUPS.forEach(g => {
+      const btn = document.createElement('button');
+      btn.className = `option-btn ${g.cls}`;
+      btn.innerHTML = `<span class="option-icon">${g.icon}</span>${g.label}`;
+      btn.onclick = () => answerGroup(g.label);
+      container.appendChild(btn);
+    });
+  } else {
+    $('step-indicator').textContent = 'PASO 2 — DINÁMICA DEBE/HABER';
+    $('question-label').textContent = `Un AUMENTO en "${acc.name}" se registra en:`;
+    selDisp.style.display = 'block';
+    selDisp.innerHTML = `Grupo: <strong>${acc.group}</strong>`;
+    container.className = 'options-grid cols-2';
+    ['Debe', 'Haber'].forEach(dh => {
+      const btn = document.createElement('button');
+      btn.className = `option-btn opt-${dh.toLowerCase()}`;
+      btn.innerHTML = `<span class="option-icon">${dh === 'Debe' ? '⬅' : '➡'}</span>${dh}`;
+      btn.onclick = () => answerDebeHaber(dh);
+      container.appendChild(btn);
+    });
+  }
+
+  questionStartTime = Date.now();
+}
+
+function disableButtons() {
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+}
+
+function answerGroup(selected) {
+  disableButtons();
+  totalAttempts++;
+  const correct = selected === currentAccount.group;
+  if (correct) {
+    correctAnswers++;
+    combo++;
+    const elapsed = (Date.now() - questionStartTime) / 1000;
+    let pts = elapsed < 3 ? 100 : 50;
+    if (combo > 0 && combo % 5 === 0) { pts *= 2; showComboBadge(); playCombo(); }
+    score += pts;
+    $('score-display').textContent = score;
+    showPointsPop(pts, true);
+    playCorrect();
+    showFeedback(true, `¡Correcto! "${currentAccount.name}" es ${currentAccount.group}`, '', () => {
+      step = 2;
+      renderStep();
+    });
+  } else {
+    combo = 0;
+    score = Math.max(0, score - 30);
+    timeLeft = Math.max(0, timeLeft - 5);
+    $('score-display').textContent = score;
+    $('combo-badge').classList.remove('show');
+    playWrong();
+    const exp = currentAccount.explanation;
+    showFeedback(false, `Incorrecto — Es ${currentAccount.group}`, exp, () => {
+      nextQuestion();
+    });
+    shakeCard();
+  }
+}
+
+function answerDebeHaber(selected) {
+  disableButtons();
+  totalAttempts++;
+  const correct = selected === currentAccount.aumenta;
+  if (correct) {
+    correctAnswers++;
+    combo++;
+    const elapsed = (Date.now() - questionStartTime) / 1000;
+    let pts = elapsed < 3 ? 100 : 50;
+    if (combo > 0 && combo % 5 === 0) { pts *= 2; showComboBadge(); playCombo(); }
+    score += pts;
+    $('score-display').textContent = score;
+    showPointsPop(pts, true);
+    playCorrect();
+    showFeedback(true, `¡Perfecto! Aumenta por el ${currentAccount.aumenta}`, currentAccount.explanation, () => {
+      nextQuestion();
+    });
+  } else {
+    combo = 0;
+    score = Math.max(0, score - 30);
+    timeLeft = Math.max(0, timeLeft - 5);
+    $('score-display').textContent = score;
+    $('combo-badge').classList.remove('show');
+    playWrong();
+    showFeedback(false, `Error — Aumenta por el ${currentAccount.aumenta}`, currentAccount.explanation, () => {
+      nextQuestion();
+    });
+    shakeCard();
+  }
+}
+
+function showComboBadge() {
+  const badge = $('combo-badge');
+  badge.classList.add('show');
+  badge.textContent = `🔥 COMBO ×${Math.floor(combo/5)*2}`;
+  setTimeout(() => badge.classList.remove('show'), 3000);
+}
+
+function shakeCard() {
+  const card = $('question-card');
+  card.classList.add('shake');
+  setTimeout(() => card.classList.remove('shake'), 500);
+}
+
+function showFeedback(isCorrect, title, msg, callback) {
+  const overlay = $('feedback-overlay');
+  const box = $('feedback-box');
+  $('feedback-icon').textContent = isCorrect ? '✓' : '✗';
+  $('feedback-title').textContent = title;
+  $('feedback-msg').textContent = msg;
+  box.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+  overlay.classList.add('show');
+  const delay = isCorrect ? 1000 : 2200;
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    setTimeout(callback, 200);
+  }, delay);
+}
+
+function showPointsPop(pts, positive) {
+  const el = document.createElement('div');
+  el.className = 'points-pop';
+  el.textContent = (positive ? '+' : '-') + pts;
+  el.style.color = positive ? '#16a34a' : '#dc2626';
+  el.style.top = '80px';
+  el.style.right = '20px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  showScreen('screen-final');
+
+  const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
+
+  $('cert-name').textContent = playerName;
+  $('final-score').textContent = score;
+  $('final-accuracy').textContent = accuracy + '%';
+  $('final-correct').textContent = correctAnswers;
+  $('final-total').textContent = totalAttempts;
+
+  setTimeout(() => {
+    $('accuracy-fill').style.width = accuracy + '%';
+  }, 300);
+
+  let grade, gradeMsg, gradeColor;
+  if (accuracy >= 90 && score >= 600) { grade = 'S'; gradeMsg = '¡Maestro Contable!'; gradeColor = '#1e3a8a'; }
+  else if (accuracy >= 80 && score >= 400) { grade = 'A'; gradeMsg = '¡Excelente dominio!'; gradeColor = '#15803d'; }
+  else if (accuracy >= 65) { grade = 'B'; gradeMsg = '¡Muy buen trabajo!'; gradeColor = '#0f766e'; }
+  else if (accuracy >= 50) { grade = 'C'; gradeMsg = 'Buen intento, sigue practicando'; gradeColor = '#f59e0b'; }
+  else { grade = 'D'; gradeMsg = 'Necesitas repasar los conceptos'; gradeColor = '#dc2626'; }
+
+  $('grade-letter').textContent = grade;
+  $('grade-letter').style.color = gradeColor;
+  $('grade-msg').textContent = gradeMsg;
+  const gradeBox = $('grade-box');
+  gradeBox.style.background = gradeColor + '15';
+  gradeBox.style.border = `2px solid ${gradeColor}40`;
+}
+
+function copyResult() {
+  const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
+  const grade = $('grade-letter').textContent;
+  const msg = $('grade-msg').textContent;
+  const text =
+    `📊 AUDITMASTER — RESULTADO DE EVALUACIÓN\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `👤 Estudiante: ${playerName}\n` +
+    `⭐ Puntaje: ${score} pts\n` +
+    `🎯 Precisión: ${accuracy}%\n` +
+    `✅ Correctas: ${correctAnswers} / ${totalAttempts} intentos\n` +
+    `🏆 Calificación: ${grade} — ${msg}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `📅 ${new Date().toLocaleDateString('es-EC', {day:'numeric',month:'long',year:'numeric'})}`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = $('btn-copy');
+    btn.textContent = '✓ ¡Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copiar Resultado';
+      btn.classList.remove('copied');
+    }, 2500);
+  }).catch(() => {
+    prompt("Copia este texto:", text);
+  });
+}
+
+function replayGame() {
+  $('player-name-input').value = playerName;
+  $('btn-start').disabled = false;
+  showScreen('screen-intro');
+}
+</script>
+</body>
+</html>
