@@ -3,1205 +3,677 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AuditMaster — Domina la Contabilidad</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>CASH CLASH ⚡ Ruta del Tesorero · NIC 7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Space+Mono:wght@400;700&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --activo: #1e3a8a;
-    --activo-light: #dbeafe;
-    --activo-mid: #3b82f6;
-    --pasivo: #7c3aed;
-    --pasivo-light: #ede9fe;
-    --patrimonio: #0f766e;
-    --patrimonio-light: #ccfbf1;
-    --ingreso: #15803d;
-    --ingreso-light: #dcfce7;
-    --gasto: #f59e0b;
-    --gasto-light: #fef3c7;
-    --gasto-dark: #92400e;
-    --error: #dc2626;
-    --error-light: #fee2e2;
-    --success: #16a34a;
-    --success-light: #dcfce7;
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
-    --radius: 16px;
-    --font-display: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: var(--font-body);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; }
-
-  /* ── PANTALLA INICIO ── */
-  #screen-intro {
-    background: linear-gradient(145deg, #0c1a3e 0%, #1e3a8a 50%, #1d4ed8 100%);
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  #screen-intro::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: rgba(251,191,36,0.07);
-    top: -200px; right: -200px;
-  }
-
-  #screen-intro::after {
-    content: '';
-    position: absolute;
-    width: 400px; height: 400px;
-    border-radius: 50%;
-    background: rgba(96,165,250,0.07);
-    bottom: -150px; left: -150px;
-  }
-
-  .intro-card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 24px;
-    padding: 3rem 2.5rem;
-    max-width: 480px;
-    width: 100%;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-  }
-
-  .logo-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(245,158,11,0.2);
-    border: 1px solid rgba(245,158,11,0.4);
-    color: #fbbf24;
-    font-family: var(--font-display);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 6px 16px;
-    border-radius: 100px;
-    margin-bottom: 1.5rem;
-  }
-
-  .intro-title {
-    font-family: var(--font-display);
-    font-size: clamp(2.2rem, 6vw, 3.5rem);
-    font-weight: 800;
-    color: #ffffff;
-    line-height: 1.1;
-    margin-bottom: 0.75rem;
-  }
-
-  .intro-title span { color: #fbbf24; }
-
-  .intro-desc {
-    color: rgba(255,255,255,0.65);
-    font-size: 15px;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-  }
-
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 2rem;
-  }
-
-  .stat-item {
-    background: rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 12px 8px;
-    text-align: center;
-  }
-
-  .stat-num {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #fbbf24;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 2px;
-  }
-
-  .name-input-wrap {
-    position: relative;
-    margin-bottom: 1.25rem;
-  }
-
-  .name-input-wrap input {
-    width: 100%;
-    padding: 14px 20px;
-    border-radius: 12px;
-    border: 1.5px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    font-family: var(--font-body);
-    font-size: 16px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .name-input-wrap input::placeholder { color: rgba(255,255,255,0.35); }
-  .name-input-wrap input:focus { border-color: #fbbf24; }
-
-  .btn-start {
-    width: 100%;
-    padding: 16px;
-    background: #f59e0b;
-    color: #0c1a3e;
-    font-family: var(--font-display);
-    font-size: 16px;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: transform 0.15s, background 0.2s;
-    letter-spacing: 0.5px;
-  }
-
-  .btn-start:hover { background: #fbbf24; transform: translateY(-2px); }
-  .btn-start:active { transform: translateY(0); }
-  .btn-start:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  /* ── PANTALLA JUEGO ── */
-  #screen-game {
-    background: var(--bg);
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  .game-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .player-name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--activo);
-  }
-
-  .timer-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .timer-circle {
-    width: 52px; height: 52px;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .timer-circle svg { transform: rotate(-90deg); }
-
-  .timer-circle .track {
-    fill: none;
-    stroke: var(--border);
-    stroke-width: 4;
-  }
-
-  .timer-circle .progress {
-    fill: none;
-    stroke: var(--activo);
-    stroke-width: 4;
-    stroke-linecap: round;
-    stroke-dasharray: 126;
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 1s linear, stroke 0.5s;
-  }
-
-  .timer-text {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-  }
-
-  .score-display {
-    text-align: right;
-  }
-
-  .score-number {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--activo);
-  }
-
-  .score-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .combo-badge {
-    background: var(--gasto);
-    color: var(--gasto-dark);
-    font-family: var(--font-display);
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 100px;
-    animation: pulse 0.6s ease;
-    display: none;
-  }
-
-  .combo-badge.show { display: inline-block; }
-
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-
-  .game-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem 1rem;
-    gap: 1.5rem;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .progress-bar-wrap {
-    width: 100%;
-    height: 6px;
-    background: var(--border);
-    border-radius: 100px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--activo);
-    border-radius: 100px;
-    transition: width 1s linear, background 0.5s;
-  }
-
-  .question-card {
-    width: 100%;
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 2rem 1.5rem;
-    box-shadow: var(--shadow);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .question-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: var(--activo);
-    transition: background 0.4s;
-  }
-
-  .step-indicator {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 0.75rem;
-  }
-
-  .account-name {
-    font-family: var(--font-display);
-    font-size: clamp(1.8rem, 5vw, 2.8rem);
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-    line-height: 1.1;
-  }
-
-  .account-hint {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
-  }
-
-  .question-label {
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 1rem;
-    padding: 10px 16px;
-    background: var(--bg);
-    border-radius: 10px;
-    display: inline-block;
-  }
-
-  .selected-group {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-  }
-
-  .selected-group strong {
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .options-grid {
-    display: grid;
-    gap: 10px;
-  }
-
-  .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-  .options-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-  .options-grid.cols-5 { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
-
-  .option-btn {
-    padding: 14px 10px;
-    border-radius: 12px;
-    border: 2px solid var(--border);
-    background: var(--surface);
-    font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .option-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  }
-
-  .option-btn:active:not(:disabled) { transform: translateY(0); }
-  .option-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-
-  .option-btn.opt-activo { border-color: var(--activo-mid); color: var(--activo); background: var(--activo-light); }
-  .option-btn.opt-pasivo { border-color: var(--pasivo); color: var(--pasivo); background: var(--pasivo-light); }
-  .option-btn.opt-patrimonio { border-color: var(--patrimonio); color: var(--patrimonio); background: var(--patrimonio-light); }
-  .option-btn.opt-ingreso { border-color: var(--ingreso); color: var(--ingreso); background: var(--ingreso-light); }
-  .option-btn.opt-gasto { border-color: var(--gasto); color: var(--gasto-dark); background: var(--gasto-light); }
-  .option-btn.opt-debe { border-color: #1e3a8a; color: #1e3a8a; background: #dbeafe; }
-  .option-btn.opt-haber { border-color: var(--pasivo); color: var(--pasivo); background: var(--pasivo-light); }
-
-  .option-icon { font-size: 20px; }
-
-  .feedback-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 1.5rem;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .feedback-overlay.show { opacity: 1; pointer-events: auto; }
-
-  .feedback-box {
-    max-width: 400px;
-    width: 100%;
-    border-radius: 20px;
-    padding: 1.75rem 1.5rem;
-    text-align: center;
-    transform: scale(0.9);
-    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  }
-
-  .feedback-overlay.show .feedback-box { transform: scale(1); }
-
-  .feedback-box.correct {
-    background: var(--success-light);
-    border: 2px solid var(--success);
-  }
-
-  .feedback-box.wrong {
-    background: var(--error-light);
-    border: 2px solid var(--error);
-  }
-
-  .feedback-icon { font-size: 40px; margin-bottom: 8px; }
-
-  .feedback-title {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
-
-  .feedback-box.correct .feedback-title { color: var(--success); }
-  .feedback-box.wrong .feedback-title { color: var(--error); }
-
-  .feedback-msg {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--text);
-  }
-
-  .points-pop {
-    position: fixed;
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 800;
-    pointer-events: none;
-    z-index: 200;
-    animation: flyUp 1.2s ease forwards;
-  }
-
-  @keyframes flyUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-80px) scale(1.3); }
-  }
-
-  /* ── PANTALLA FINAL ── */
-  #screen-final {
-    background: linear-gradient(145deg, #0c1a3e 0%, #1e3a8a 60%, #312e81 100%);
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-  }
-
-  .certificate {
-    background: var(--surface);
-    border-radius: 24px;
-    max-width: 520px;
-    width: 100%;
-    overflow: hidden;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
-  }
-
-  .cert-header {
-    background: linear-gradient(135deg, var(--activo) 0%, #1d4ed8 100%);
-    padding: 2rem 1.5rem;
-    text-align: center;
-    position: relative;
-  }
-
-  .cert-header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 30px;
-    background: var(--surface);
-    clip-path: ellipse(55% 100% at 50% 100%);
-  }
-
-  .cert-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(245,158,11,0.2);
-    border: 1px solid rgba(245,158,11,0.5);
-    color: #fbbf24;
-    font-size: 11px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 5px 14px;
-    border-radius: 100px;
-    margin-bottom: 1rem;
-  }
-
-  .cert-title {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: #fff;
-    margin-bottom: 4px;
-  }
-
-  .cert-subtitle {
-    color: rgba(255,255,255,0.65);
-    font-size: 13px;
-  }
-
-  .cert-body {
-    padding: 2rem 1.75rem;
-  }
-
-  .cert-name {
-    text-align: center;
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--activo);
-    margin-bottom: 1.75rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 2px dashed var(--border);
-  }
-
-  .cert-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 1.5rem;
-  }
-
-  .cert-stat {
-    background: var(--bg);
-    border-radius: 14px;
-    padding: 1rem;
-    text-align: center;
-  }
-
-  .cert-stat-val {
-    font-family: var(--font-display);
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--activo);
-  }
-
-  .cert-stat-label {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 2px;
-  }
-
-  .accuracy-bar {
-    width: 100%;
-    height: 8px;
-    background: var(--border);
-    border-radius: 100px;
-    overflow: hidden;
-    margin: 1rem 0;
-  }
-
-  .accuracy-fill {
-    height: 100%;
-    border-radius: 100px;
-    background: linear-gradient(90deg, var(--activo-mid), var(--activo));
-    transition: width 1s ease;
-  }
-
-  .grade-box {
-    text-align: center;
-    padding: 1rem;
-    border-radius: 14px;
-    margin-bottom: 1.5rem;
-  }
-
-  .grade-letter {
-    font-family: var(--font-display);
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .grade-msg {
-    font-size: 14px;
-    margin-top: 4px;
-    font-weight: 500;
-  }
-
-  .cert-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .btn-copy {
-    width: 100%;
-    padding: 14px;
-    background: var(--activo);
-    color: white;
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .btn-copy:hover { background: #1d4ed8; transform: translateY(-1px); }
-  .btn-copy.copied { background: var(--success); }
-
-  .btn-replay {
-    width: 100%;
-    padding: 14px;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 600;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .btn-replay:hover { background: var(--bg); color: var(--text); }
-
-  /* SHAKE animation */
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-5px); }
-    80% { transform: translateX(5px); }
-  }
-
-  .shake { animation: shake 0.4s ease; }
-
-  @keyframes correct-flash {
-    0% { background: var(--success-light); }
-    100% { background: var(--bg); }
-  }
-
-  .flash-correct { animation: correct-flash 0.5s ease; }
-
-  /* mobile tweaks */
-  @media (max-width: 480px) {
-    .game-header { padding: 10px 14px; }
-    .options-grid.cols-5 { grid-template-columns: 1fr 1fr; }
-    .cert-stats { grid-template-columns: 1fr 1fr; }
-  }
+  :root{
+    --bg:#070d18;--bg2:#0c1426;--panel:#101a30;--line:#22335a;--ink:#eaf1ff;--muted:#7d8db0;
+    --cyan:#2ff3ff;--lime:#a6ff3d;--magenta:#ff4d8d;--gold:#ffd23f;--violet:#9b6bff;--red:#ff5470;
+    --green-bg:#0d2e22;--red-bg:#33121d;--radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Spline Sans',sans-serif;color:var(--ink);min-height:100vh;
+    background:
+      radial-gradient(900px 500px at 90% -5%, rgba(47,243,255,.12), transparent 60%),
+      radial-gradient(800px 500px at 0% 100%, rgba(255,77,141,.12), transparent 55%),
+      radial-gradient(700px 400px at 50% 50%, rgba(155,107,255,.06), transparent 60%),
+      var(--bg);
+    display:flex;justify-content:center;align-items:flex-start;padding:22px 14px 60px;overflow-x:hidden;
+  }
+  .wrap{width:100%;max-width:780px}
+
+  .hud{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:48px;height:48px;border-radius:14px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--cyan),var(--violet));color:#04101f;
+    font-family:'Bricolage Grotesque';font-weight:800;font-size:24px;box-shadow:0 0 22px -4px var(--cyan)}
+  .brand h1{font-family:'Bricolage Grotesque';font-weight:800;font-size:21px;letter-spacing:-.5px;line-height:1}
+  .brand h1 span{color:var(--cyan)}
+  .brand small{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .hud-right{display:flex;gap:9px;align-items:center}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 12px;text-align:center;min-width:60px}
+  .chip .k{font-family:'Space Mono';font-weight:700;font-size:17px;line-height:1}
+  .chip .l{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:3px}
+  .chip.time .k{color:var(--gold)} .chip.score .k{color:var(--lime)}
+  .chip.lives .k{font-size:13px;letter-spacing:1px}
+  .chip.lives.danger,.chip.time.warn{border-color:var(--red);animation:pulseR 1s infinite}
+  .chip.time.warn .k{color:var(--red)}
+  @keyframes pulseR{0%,100%{box-shadow:0 0 0 0 rgba(255,84,112,.4)}50%{box-shadow:0 0 0 6px rgba(255,84,112,0)}}
+  .mute{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:38px;height:38px;cursor:pointer;color:var(--ink);font-size:16px}
+
+  /* stepper de estaciones */
+  .stepper{display:flex;gap:8px;margin-bottom:14px}
+  .step{flex:1;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:8px 11px;font-size:11.5px;color:var(--muted);font-weight:600;opacity:.55;transition:.25s}
+  .step .n{width:20px;height:20px;border-radius:50%;flex:none;display:grid;place-items:center;background:#0a1426;
+    font-family:'Space Mono';font-weight:700;font-size:11px}
+  .step.active{opacity:1;border-color:var(--cyan);color:var(--ink)}
+  .step.active .n{background:var(--cyan);color:#04101f}
+  .step.done{opacity:1;border-color:var(--lime);color:var(--lime)}
+  .step.done .n{background:var(--lime);color:#04101f}
+  @media(max-width:560px){.step .label{display:none}.step{justify-content:center}}
+
+  .combo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:12px;height:24px;
+    font-family:'Bricolage Grotesque';font-weight:800;font-size:14px;opacity:0;transition:opacity .2s}
+  .combo.show{opacity:1}
+  .combo .mult{color:var(--gold);text-shadow:0 0 14px rgba(255,210,63,.6)}
+  .combo .bar{flex:1;max-width:150px;height:6px;background:#0a1426;border-radius:99px;overflow:hidden}
+  .combo .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--lime),var(--cyan));border-radius:99px;transition:width .25s}
+
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--radius);padding:26px 24px;position:relative;overflow:hidden;box-shadow:0 30px 70px -28px #000}
+  .card.trapmode{border-color:var(--magenta);box-shadow:0 0 0 1px var(--magenta),0 0 50px -10px rgba(255,77,141,.5)}
+  .card::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:20px 20px}
+  .card>*{position:relative;z-index:1}
+
+  .qtimer{height:7px;background:#0a1426;border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .qtimer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--lime));border-radius:99px}
+  .qtimer .lbl-mini{position:absolute}
+
+  .tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;padding:5px 12px;border-radius:99px;margin-bottom:14px}
+  .tag.cls{color:var(--cyan);background:rgba(47,243,255,.1);border:1px solid rgba(47,243,255,.3)}
+  .tag.adj{color:var(--lime);background:rgba(166,255,61,.1);border:1px solid rgba(166,255,61,.3)}
+  .tag.bld{color:var(--violet);background:rgba(155,107,255,.12);border:1px solid rgba(155,107,255,.35)}
+  .tag.trap{color:var(--magenta);background:rgba(255,77,141,.12);border:1px solid rgba(255,77,141,.4);animation:wob 1.4s infinite}
+  @keyframes wob{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+
+  h2.q{font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;line-height:1.18;letter-spacing:-.4px;margin-bottom:5px}
+  .q-sub{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+
+  .item{background:#0a1325;border:1px dashed var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;text-align:center}
+  .item .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--muted);margin-bottom:7px}
+  .item .txt{font-family:'Bricolage Grotesque';font-size:21px;font-weight:700;line-height:1.25}
+  .item.trap{border-color:var(--magenta);background:#1d0e1a}
+
+  .opts{display:grid;gap:10px}
+  .opts.g3{grid-template-columns:1fr 1fr 1fr} .opts.g4{grid-template-columns:1fr 1fr} .opts.g2{grid-template-columns:1fr 1fr}
+  @media(max-width:560px){.opts.g3,.opts.g4,.opts.g2{grid-template-columns:1fr}}
+  .opt{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    font-family:'Spline Sans';font-weight:700;font-size:14.5px;padding:15px 12px;border-radius:13px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.2;transition:transform .1s,border-color .15s,background .15s}
+  .opt .em{font-size:21px} .opt small{font-weight:400;color:var(--muted);font-size:11px}
+  .opt:hover:not(:disabled){transform:translateY(-3px);border-color:var(--cyan)}
+  .opt:disabled{cursor:default}
+  .opt.ok{background:var(--green-bg);border-color:var(--lime);box-shadow:0 0 0 1px var(--lime) inset}
+  .opt.no{background:var(--red-bg);border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}
+  .opt.dim{opacity:.35}
+
+  .fb{margin-top:16px;border-radius:13px;padding:14px 16px;display:none;border:1px solid;animation:rise .3s both}
+  .fb.show{display:block}
+  .fb.y{background:var(--green-bg);border-color:rgba(166,255,61,.4)} .fb.n{background:var(--red-bg);border-color:rgba(255,84,112,.4)}
+  .fb .ft{font-weight:800;font-size:14.5px;margin-bottom:4px;display:flex;align-items:center;gap:7px;font-family:'Bricolage Grotesque'}
+  .fb.y .ft{color:var(--lime)} .fb.n .ft{color:var(--red)}
+  .fb p{font-size:13px;color:#c5d2ec;line-height:1.5} .fb b{color:var(--gold)}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .btn{appearance:none;border:none;cursor:pointer;font-family:'Bricolage Grotesque';font-weight:800;font-size:15px;
+    padding:14px 24px;border-radius:13px;letter-spacing:.2px;color:#04101f;
+    background:linear-gradient(135deg,var(--cyan),var(--lime));transition:transform .1s,filter .15s}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+  .btn.full{width:100%;justify-content:center;text-align:center}
+  .btn.alt{background:linear-gradient(135deg,var(--violet),var(--magenta));color:#fff}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn:disabled{opacity:.45;cursor:default;transform:none}
+  .row{display:flex;justify-content:flex-end;margin-top:18px}
+
+  .float{position:fixed;font-family:'Bricolage Grotesque';font-weight:800;font-size:28px;pointer-events:none;z-index:99;animation:fly 1s ease-out forwards}
+  @keyframes fly{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(1.3)}}
+
+  /* construir flujo (estación 3) */
+  .build-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #16213c}
+  .build-row .d{font-size:13.5px}
+  .build-row .amt{font-family:'Space Mono';font-size:13px;color:var(--muted)}
+  .signs{display:flex;gap:7px}
+  .sgn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:19px;font-weight:700;cursor:pointer;transition:.15s}
+  .sgn:hover{border-color:var(--cyan)}
+  .sgn.selp{background:var(--green-bg);border-color:var(--lime);color:var(--lime)}
+  .sgn.selm{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+  .sgn:disabled{cursor:default}
+  .runtot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:2px solid var(--line)}
+  .runtot .l{font-family:'Bricolage Grotesque';font-weight:700;font-size:16px}
+  .runtot .v{font-family:'Space Mono';font-weight:700;font-size:21px;color:var(--gold)}
+  .casehead{display:flex;align-items:center;justify-content:space-between;font-size:14px;margin-bottom:8px}
+  .casehead .ut{font-family:'Space Mono';color:var(--gold);font-weight:700}
+
+  /* pantallas */
+  .hero{text-align:center;padding:6px 4px}
+  .hero .kick{font-size:11.5px;letter-spacing:2px;text-transform:uppercase;color:var(--magenta);margin-bottom:12px;font-weight:700}
+  .hero h2{font-family:'Bricolage Grotesque';font-weight:800;font-size:38px;line-height:.98;letter-spacing:-1.2px;margin-bottom:13px}
+  .hero h2 .g{background:linear-gradient(120deg,var(--cyan),var(--lime),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);font-size:14.5px;max-width:500px;margin:0 auto 8px;line-height:1.55}
+  .route{display:grid;gap:10px;margin:20px 0;text-align:left}
+  .rstep{background:#0a1325;border:1px solid var(--line);border-radius:13px;padding:13px 15px;display:flex;gap:13px;align-items:center}
+  .rstep .num{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;font-family:'Bricolage Grotesque';font-weight:800;font-size:16px}
+  .rstep:nth-child(1) .num{background:rgba(47,243,255,.15);color:var(--cyan)}
+  .rstep:nth-child(2) .num{background:rgba(166,255,61,.15);color:var(--lime)}
+  .rstep:nth-child(3) .num{background:rgba(155,107,255,.18);color:var(--violet)}
+  .rstep h4{font-size:14.5px;margin-bottom:2px;font-family:'Bricolage Grotesque'}
+  .rstep p{font-size:12.5px;color:var(--muted);margin:0;text-align:left;line-height:1.4}
+  .rstep .tm{margin-left:auto;font-family:'Space Mono';font-size:12px;color:var(--gold);flex:none}
+  .minirules{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0 4px}
+  .mr{font-size:11.5px;color:var(--muted);background:#0a1325;border:1px solid var(--line);border-radius:99px;padding:5px 11px}
+  .namewrap{margin:14px 0 4px}
+  .namewrap label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+  .nameInput{width:100%;max-width:320px;background:#0a1325;border:1px solid var(--line);border-radius:12px;
+    padding:13px 16px;color:var(--ink);font-family:'Spline Sans';font-size:16px;text-align:center;outline:none}
+  .nameInput:focus{border-color:var(--cyan)}
+  .bigicon{font-size:64px;line-height:1;margin-bottom:6px}
+
+  .chest{text-align:center;padding:16px 4px}
+  .chest .icn{font-size:70px;margin-bottom:6px;animation:bob 1.2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+  .chest h3{font-family:'Bricolage Grotesque';font-weight:800;font-size:24px;margin-bottom:6px}
+
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:20px 0}
+  .col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;max-width:120px}
+  .col .nm{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .col .sc{font-family:'Space Mono';font-size:12px;color:var(--muted)}
+  .bar3{width:100%;border-radius:10px 10px 0 0;display:grid;place-items:center;font-size:26px;padding-top:8px}
+  .b1{height:92px;background:linear-gradient(180deg,var(--gold),#b88a17)}
+  .b2{height:70px;background:linear-gradient(180deg,#cfd8ea,#8893ad)}
+  .b3{height:54px;background:linear-gradient(180deg,#e8a06b,#a8633a)}
+  .lb{border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .lb-row{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13.5px;border-bottom:1px solid #16213c}
+  .lb-row:last-child{border-bottom:none} .lb-row.me{background:rgba(166,255,61,.08)}
+  .lb-row .rk{font-family:'Space Mono';font-weight:700;color:var(--muted);width:26px}
+  .lb-row .nm{flex:1;font-weight:600} .lb-row .sc{font-family:'Space Mono';font-weight:700;color:var(--lime)}
+  .end-grid{display:flex;gap:10px;justify-content:center;margin:14px 0}
+  .end-grid .s{background:#0a1325;border:1px solid var(--line);border-radius:12px;padding:11px 16px}
+  .end-grid .v{font-family:'Space Mono';font-weight:700;font-size:21px;color:var(--cyan)}
+  .end-grid .l{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px}
+
+  .foot{text-align:center;margin-top:16px;font-size:11px;color:#3f5274} .foot b{color:var(--muted)}
 </style>
 </head>
 <body>
-
-<!-- PANTALLA INICIO -->
-<div id="screen-intro" class="screen active">
-  <div class="intro-card">
-    <div class="logo-badge">⚡ EdTech · Contabilidad</div>
-    <h1 class="intro-title">Audit<span>Master</span></h1>
-    <p class="intro-desc">Demuestra tu dominio en clasificación de cuentas y la dinámica Debe/Haber. ¡120 segundos para ser el mejor!</p>
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-num">24</div>
-        <div class="stat-label">Cuentas</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">120s</div>
-        <div class="stat-label">Tiempo</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">×2</div>
-        <div class="stat-label">Combo</div>
-      </div>
+<div class="wrap">
+  <div class="hud">
+    <div class="brand">
+      <div class="logo">¢</div>
+      <div><h1>CASH <span>CLASH</span></h1><small>Ruta del Tesorero · NIC 7</small></div>
     </div>
-    <div class="name-input-wrap">
-      <input type="text" id="player-name-input" placeholder="Escribe tu nombre completo..." maxlength="40" />
-    </div>
-    <button class="btn-start" id="btn-start" disabled onclick="startGame()">COMENZAR PARTIDA →</button>
-  </div>
-</div>
-
-<!-- PANTALLA JUEGO -->
-<div id="screen-game" class="screen">
-  <header class="game-header">
-    <div>
-      <div class="score-label">Jugador</div>
-      <div class="player-name" id="hdr-player">—</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <span class="combo-badge" id="combo-badge">🔥 COMBO ×2</span>
-      <div class="timer-wrap">
-        <div class="timer-circle">
-          <svg width="52" height="52" viewBox="0 0 52 52">
-            <circle class="track" cx="26" cy="26" r="20"/>
-            <circle class="progress" id="timer-ring" cx="26" cy="26" r="20"/>
-          </svg>
-          <div class="timer-text" id="timer-display">120</div>
-        </div>
-      </div>
-    </div>
-    <div class="score-display">
-      <div class="score-label">Puntaje</div>
-      <div class="score-number" id="score-display">0</div>
-    </div>
-  </header>
-
-  <div class="progress-bar-wrap" style="margin:0 16px;width:calc(100% - 32px);">
-    <div class="progress-bar-fill" id="progress-bar" style="width:100%;"></div>
-  </div>
-
-  <div class="game-body">
-    <div class="question-card" id="question-card">
-      <div class="step-indicator" id="step-indicator">PASO 1 — CLASIFICA EL GRUPO</div>
-      <div class="account-name" id="account-name">Caja</div>
-      <div class="account-hint" id="account-hint">¿A qué grupo pertenece esta cuenta?</div>
-      <div class="question-label" id="question-label">Selecciona el grupo contable:</div>
-      <div class="selected-group" id="selected-group-display" style="display:none;"></div>
-      <div class="options-grid cols-5" id="options-container"></div>
+    <div class="hud-right" id="hudR" style="display:none">
+      <div class="chip time" id="timeChip"><div class="k" id="timeV">5:00</div><div class="l">Estación</div></div>
+      <div class="chip score"><div class="k" id="scoreV">0</div><div class="l">Puntos</div></div>
+      <div class="chip lives" id="livesChip"><div class="k" id="livesV">❤️❤️❤️❤️❤️</div><div class="l">Vidas</div></div>
+      <button class="mute" id="muteBtn" title="Sonido">🔊</button>
     </div>
   </div>
-</div>
 
-<!-- PANTALLA FINAL -->
-<div id="screen-final" class="screen">
-  <div class="certificate" id="certificate">
-    <div class="cert-header">
-      <div class="cert-badge">✦ Certificado de Auditoría</div>
-      <div class="cert-title">AuditMaster</div>
-      <div class="cert-subtitle">Resultado de Evaluación Contable</div>
-    </div>
-    <div class="cert-body">
-      <div class="cert-name" id="cert-name">Estudiante</div>
-      <div class="cert-stats">
-        <div class="cert-stat">
-          <div class="cert-stat-val" id="final-score">0</div>
-          <div class="cert-stat-label">Puntaje Total</div>
-        </div>
-        <div class="cert-stat">
-          <div class="cert-stat-val" id="final-accuracy">0%</div>
-          <div class="cert-stat-label">Precisión</div>
-        </div>
-        <div class="cert-stat">
-          <div class="cert-stat-val" id="final-correct">0</div>
-          <div class="cert-stat-label">Correctas</div>
-        </div>
-        <div class="cert-stat">
-          <div class="cert-stat-val" id="final-total">0</div>
-          <div class="cert-stat-label">Intentos</div>
-        </div>
-      </div>
-      <div class="accuracy-bar">
-        <div class="accuracy-fill" id="accuracy-fill" style="width:0%"></div>
-      </div>
-      <div class="grade-box" id="grade-box">
-        <div class="grade-letter" id="grade-letter">A</div>
-        <div class="grade-msg" id="grade-msg">¡Excelente dominio!</div>
-      </div>
-      <div class="cert-actions">
-        <button class="btn-copy" id="btn-copy" onclick="copyResult()">📋 Copiar Resultado</button>
-        <button class="btn-replay" onclick="replayGame()">↩ Jugar de Nuevo</button>
-      </div>
-    </div>
+  <div class="stepper" id="stepper" style="display:none">
+    <div class="step" id="st1"><span class="n">1</span><span class="label">Actividades</span></div>
+    <div class="step" id="st2"><span class="n">2</span><span class="label">Suma / Resta</span></div>
+    <div class="step" id="st3"><span class="n">3</span><span class="label">Armar flujo</span></div>
   </div>
-</div>
 
-<!-- FEEDBACK OVERLAY -->
-<div class="feedback-overlay" id="feedback-overlay">
-  <div class="feedback-box" id="feedback-box">
-    <div class="feedback-icon" id="feedback-icon">✓</div>
-    <div class="feedback-title" id="feedback-title">¡Correcto!</div>
-    <div class="feedback-msg" id="feedback-msg"></div>
+  <div class="combo" id="combo">
+    <span class="mult" id="multV">x2</span>
+    <span class="bar"><i id="comboBar" style="width:0%"></i></span>
+    <span style="color:var(--muted);font-size:12px" id="comboTxt">RACHA</span>
   </div>
+
+  <div class="card" id="card"></div>
+  <div class="foot">3 estaciones · 5 min c/u · <b>NIC 7 — método indirecto</b> · ¡llega al podio sin perder tus vidas!</div>
 </div>
 
 <script>
-const ACCOUNTS = [
-  { name: "Caja", group: "Activo", aumenta: "Debe", hint: "Dinero en efectivo físico en la empresa", explanation: "El Activo aumenta por el Debe porque representa lo que la empresa POSEE o tiene a su favor." },
-  { name: "Bancos", group: "Activo", aumenta: "Debe", hint: "Saldo en cuentas bancarias", explanation: "El Activo aumenta por el Debe. Los depósitos bancarios son recursos propios de la empresa." },
-  { name: "Clientes", group: "Activo", aumenta: "Debe", hint: "Dinero que deben los clientes por ventas a crédito", explanation: "Las cuentas por cobrar son Activos: aumentan por el Debe pues son derechos a recibir dinero." },
-  { name: "Mercaderías", group: "Activo", aumenta: "Debe", hint: "Inventario de productos para la venta", explanation: "El inventario es un Activo que aumenta por el Debe al ingresar más mercancía." },
-  { name: "Muebles y Enseres", group: "Activo", aumenta: "Debe", hint: "Mobiliario de la empresa", explanation: "Los bienes tangibles son Activos que aumentan por el Debe al adquirirse." },
-  { name: "Vehículos", group: "Activo", aumenta: "Debe", hint: "Camiones o autos de la empresa", explanation: "Los vehículos son Activos fijos que aumentan por el Debe al comprarse." },
-  { name: "Documentos por Cobrar", group: "Activo", aumenta: "Debe", hint: "Letras o pagarés a favor de la empresa", explanation: "Son derechos exigibles (Activo): aumentan por el Debe al recibir el documento." },
-  { name: "IVA en Compras", group: "Activo", aumenta: "Debe", hint: "Impuesto pagado en compras (crédito fiscal)", explanation: "El IVA en compras es un Activo (crédito fiscal) que aumenta por el Debe." },
-  { name: "Proveedores", group: "Pasivo", aumenta: "Haber", hint: "Deudas con proveedores por compras a crédito", explanation: "El Pasivo aumenta por el Haber porque son OBLIGACIONES externas que la empresa debe pagar." },
-  { name: "Préstamos Bancarios", group: "Pasivo", aumenta: "Haber", hint: "Deuda con el banco", explanation: "Las deudas financieras son Pasivos que aumentan por el Haber al recibir el préstamo." },
-  { name: "Documentos por Pagar", group: "Pasivo", aumenta: "Haber", hint: "Letras o pagarés que la empresa debe pagar", explanation: "Las obligaciones documentadas son Pasivos que aumentan por el Haber." },
-  { name: "IVA en Ventas", group: "Pasivo", aumenta: "Haber", hint: "Impuesto cobrado en ventas (deuda con el fisco)", explanation: "El IVA cobrado en ventas es una deuda con el fisco (Pasivo) y aumenta por el Haber." },
-  { name: "Sueldos por Pagar", group: "Pasivo", aumenta: "Haber", hint: "Remuneraciones pendientes de pago al personal", explanation: "Las remuneraciones por pagar son obligaciones (Pasivo) que aumentan por el Haber." },
-  { name: "Capital Social", group: "Patrimonio", aumenta: "Haber", hint: "Aporte inicial de los socios", explanation: "El Patrimonio aumenta por el Haber porque representa el derecho de los propietarios SOBRE la empresa." },
-  { name: "Reservas", group: "Patrimonio", aumenta: "Haber", hint: "Utilidades retenidas legalmente", explanation: "Las reservas son parte del Patrimonio y aumentan por el Haber al constituirse." },
-  { name: "Utilidad del Ejercicio", group: "Patrimonio", aumenta: "Haber", hint: "Ganancia neta del período", explanation: "La utilidad incrementa el Patrimonio (aumenta por el Haber) al generarse beneficios." },
-  { name: "Ventas", group: "Ingreso", aumenta: "Haber", hint: "Ingresos por venta de mercaderías", explanation: "Los Ingresos aumentan por el Haber porque incrementan el Patrimonio de la empresa." },
-  { name: "Comisiones Ganadas", group: "Ingreso", aumenta: "Haber", hint: "Ingresos por servicios de intermediación", explanation: "Las comisiones son Ingresos: aumentan por el Haber al generar beneficios para la empresa." },
-  { name: "Intereses Ganados", group: "Ingreso", aumenta: "Haber", hint: "Rendimiento de inversiones o préstamos otorgados", explanation: "Los intereses a favor son Ingresos que aumentan por el Haber." },
-  { name: "Sueldos y Salarios", group: "Gasto", aumenta: "Debe", hint: "Remuneraciones pagadas al personal", explanation: "Los Gastos aumentan por el Debe porque CONSUMEN recursos y disminuyen el Patrimonio." },
-  { name: "Arriendo Pagado", group: "Gasto", aumenta: "Debe", hint: "Pago por uso de un local comercial", explanation: "El arriendo es un Gasto que aumenta por el Debe al consumir recursos de la empresa." },
-  { name: "Costo de Ventas", group: "Gasto", aumenta: "Debe", hint: "Valor en libros de la mercadería vendida", explanation: "El Costo de Ventas es un Gasto/Costo que aumenta por el Debe al entregar la mercancía." },
-  { name: "Publicidad y Propaganda", group: "Gasto", aumenta: "Debe", hint: "Inversión en marketing y publicidad", explanation: "Los gastos de marketing consumen recursos y aumentan por el Debe." },
-  { name: "Servicios Básicos", group: "Gasto", aumenta: "Debe", hint: "Agua, luz, teléfono e internet", explanation: "Los servicios básicos son Gastos operativos que aumentan por el Debe." },
+/* ===================== AUDIO ===================== */
+let muted=false,actx=null;
+function beep(f,d,t,v){if(muted)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.type=t||'sine';o.frequency.value=f;
+  g.gain.value=v||.06;o.connect(g);g.connect(actx.destination);o.start();
+  g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+(d||.15));o.stop(actx.currentTime+(d||.15));}catch(e){}}
+const sfx={
+  good(){beep(660,.1,'triangle',.06);setTimeout(()=>beep(990,.12,'triangle',.06),90)},
+  bad(){beep(180,.25,'sawtooth',.05)},
+  trap(){beep(140,.18,'square',.05);setTimeout(()=>beep(110,.22,'square',.05),140)},
+  chest(){beep(523,.1,'sine',.06);setTimeout(()=>beep(784,.1,'sine',.06),100);setTimeout(()=>beep(1046,.16,'sine',.06),200)},
+  tick(){beep(440,.05,'sine',.03)},
+  level(){beep(523,.1,'triangle',.06);setTimeout(()=>beep(659,.1,'triangle',.06),110);setTimeout(()=>beep(784,.14,'triangle',.06),220)},
+  end(){beep(523,.12,'triangle',.06);setTimeout(()=>beep(659,.12,'triangle',.06),130);setTimeout(()=>beep(880,.2,'triangle',.06),260)}
+};
+
+/* ===================== BANCO ===================== */
+const BANK=[
+  // Estación 1 · Clasificación (cls)  OP / INV / FIN
+  {ty:'cls',t:"Cobro a clientes por ventas",a:"OP",e:"Actividad principal del negocio &rarr; <b>Operación</b>."},
+  {ty:'cls',t:"Pago de sueldos al personal",a:"OP",e:"Gasto operativo normal &rarr; <b>Operación</b>."},
+  {ty:'cls',t:"Pago a proveedores de mercadería",a:"OP",e:"Parte del giro del negocio &rarr; <b>Operación</b>."},
+  {ty:'cls',t:"Pago de servicios básicos (luz, agua)",a:"OP",e:"Gasto operativo del día a día &rarr; <b>Operación</b>."},
+  {ty:'cls',t:"Compra de maquinaria para producir",a:"INV",e:"Adquirir propiedad, planta y equipo &rarr; <b>Inversión</b>."},
+  {ty:'cls',t:"Compra de un vehículo para la empresa",a:"INV",e:"Activo de largo plazo &rarr; <b>Inversión</b>."},
+  {ty:'cls',t:"Venta de un terreno en desuso",a:"INV",e:"Vender un activo de largo plazo &rarr; <b>Inversión</b>."},
+  {ty:'cls',t:"Venta de un equipo usado",a:"INV",e:"Cobro por un activo de largo plazo &rarr; <b>Inversión</b>."},
+  {ty:'cls',t:"Obtención de un préstamo bancario",a:"FIN",e:"Financiamiento de terceros &rarr; <b>Financiación</b>."},
+  {ty:'cls',t:"Pago (abono al capital) de un préstamo",a:"FIN",e:"Devolver el principal de la deuda &rarr; <b>Financiación</b>."},
+  {ty:'cls',t:"Pago de dividendos a los dueños",a:"FIN",e:"Retribuye a los dueños del capital &rarr; <b>Financiación</b>."},
+  {ty:'cls',t:"Compra de mercadería (inventario) al contado",a:"OP",trap:true,e:"¡Trampa! El inventario es parte del ciclo del negocio &rarr; <b>Operación</b>, NO Inversión."},
+  {ty:'cls',t:"Pago del impuesto a la renta",a:"OP",trap:true,e:"Impuestos sobre ganancias &rarr; <b>Operación</b>, salvo asociación clara a inversión/financiación."},
+
+  // Estación 2 · Ajustes (adj)  + suma / − resta
+  {ty:'adj',t:"Depreciación del ejercicio",a:"+",e:"Gasto que no usó efectivo &rarr; se <b>suma</b>."},
+  {ty:'adj',t:"Amortización de intangibles",a:"+",e:"Gasto no monetario &rarr; se <b>suma</b>."},
+  {ty:'adj',t:"Aumento en cuentas por cobrar",a:"-",e:"Vendiste pero no cobraste &rarr; se <b>resta</b>."},
+  {ty:'adj',t:"Disminución de cuentas por cobrar",a:"+",e:"Cobraste a clientes: entró efectivo &rarr; se <b>suma</b>."},
+  {ty:'adj',t:"Disminución de inventarios",a:"+",e:"Inventario vuelto efectivo &rarr; se <b>suma</b>."},
+  {ty:'adj',t:"Aumento de inventarios",a:"-",e:"Compraste inventario: salió efectivo &rarr; se <b>resta</b>."},
+  {ty:'adj',t:"Aumento en cuentas por pagar",a:"+",e:"Retienes efectivo no pagado &rarr; se <b>suma</b>."},
+  {ty:'adj',t:"Disminución de cuentas por pagar",a:"-",e:"Pagaste a proveedores &rarr; se <b>resta</b>."},
+  {ty:'adj',t:"Aumento en gastos pagados por anticipado",a:"-",e:"Salió efectivo por un gasto futuro &rarr; se <b>resta</b>."},
+  {ty:'adj',t:"Aumento en impuestos por pagar",a:"+",trap:true,e:"Pasivo que sube: retienes efectivo &rarr; se <b>suma</b> (como cuentas por pagar)."},
 ];
+const CLS=BANK.filter(q=>q.ty==='cls');
+const ADJ=BANK.filter(q=>q.ty==='adj');
 
-const GROUPS = [
-  { label: "Activo", icon: "🏦", cls: "opt-activo" },
-  { label: "Pasivo", icon: "📋", cls: "opt-pasivo" },
-  { label: "Patrimonio", icon: "👑", cls: "opt-patrimonio" },
-  { label: "Ingreso", icon: "📈", cls: "opt-ingreso" },
-  { label: "Gasto", icon: "💸", cls: "opt-gasto" },
-];
+// Estación 3 · UN solo flujo completo (Operación + Inversión + Financiación)
+const FULL_FLOW={
+  net:50000,
+  sections:[
+    {key:'OP',title:'Actividades de operación',hint:'método indirecto',start:50000,startLabel:'Utilidad neta',lines:[
+      {d:"Depreciación del ejercicio",amt:8000,sign:'+'},
+      {d:"Aumento en cuentas por cobrar",amt:5000,sign:'-'},
+      {d:"Disminución de inventarios",amt:3000,sign:'+'},
+      {d:"Aumento en cuentas por pagar",amt:4000,sign:'+'},
+    ]},
+    {key:'INV',title:'Actividades de inversión',hint:'entra (+) / sale (−) efectivo',start:0,lines:[
+      {d:"Compra de maquinaria",amt:20000,sign:'-'},
+      {d:"Venta de un terreno",amt:6000,sign:'+'},
+    ]},
+    {key:'FIN',title:'Actividades de financiación',hint:'entra (+) / sale (−) efectivo',start:0,lines:[
+      {d:"Préstamo bancario recibido",amt:15000,sign:'+'},
+      {d:"Pago de dividendos",amt:5000,sign:'-'},
+    ]},
+  ]
+};
 
-const TOTAL_TIME = 120;
-let playerName = "", score = 0, timeLeft = TOTAL_TIME;
-let correctAnswers = 0, totalAttempts = 0;
-let combo = 0, timerInterval = null;
-let currentAccount = null, step = 1;
-let questionStartTime = null;
-let usedIndexes = [];
+/* ===================== ESTADO ===================== */
+const ST_TIME=5*60;          // 5 min por estación
+const MAX_LIVES=5;
+const BONUS_WIN=9;           // ventana de bono por velocidad (seg)
+let S={};
+const card=document.getElementById('card'), hudR=document.getElementById('hudR'),
+      stepper=document.getElementById('stepper');
+let stTimer=null,qDeadline=0,qbarTO=null,paused=false,lastCase=-1;
 
-const $ = id => document.getElementById(id);
+function reset(){S={screen:'start',name:'',score:0,lives:MAX_LIVES,combo:0,maxCombo:0,
+  station:1,stTime:ST_TIME,answered:0,correct:0,stAns:0,stCor:0,
+  queue:[],qi:0,current:null,picks:[],caseData:null,_chest:false};}
+function mult(){if(S.combo>=9)return 3;if(S.combo>=6)return 2;if(S.combo>=3)return 1.5;return 1;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function money(n){return '$'+n.toLocaleString('es-EC')}
+function fmtTime(s){const m=Math.floor(s/60),x=s%60;return m+":"+String(x).padStart(2,'0')}
 
-// Audio context for beeps
-let audioCtx = null;
-function getAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
+/* ===================== HUD ===================== */
+function updHUD(){
+  document.getElementById('timeV').textContent=fmtTime(S.stTime);
+  document.getElementById('scoreV').textContent=S.score;
+  document.getElementById('timeChip').classList.toggle('warn',S.stTime<=60);
+  document.getElementById('livesV').textContent='❤️'.repeat(S.lives)+'🖤'.repeat(MAX_LIVES-S.lives);
+  document.getElementById('livesChip').classList.toggle('danger',S.lives<=1);
+  const c=document.getElementById('combo');
+  if(S.combo>=3){c.classList.add('show');document.getElementById('multV').textContent='x'+mult();
+    document.getElementById('comboTxt').textContent='RACHA '+S.combo;
+    document.getElementById('comboBar').style.width=(S.combo>=9?100:(S.combo%3)/3*100)+'%';
+  }else c.classList.remove('show');
+}
+function updStepper(){
+  [1,2,3].forEach(n=>{const el=document.getElementById('st'+n);el.className='step';
+    if(n<S.station)el.classList.add('done');if(n===S.station)el.classList.add('active');});
 }
 
-function playBeep(freq, duration, type = 'sine', gain = 0.3) {
-  try {
-    const ctx = getAudio();
-    const osc = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    osc.type = type;
-    osc.frequency.value = freq;
-    gainNode.gain.setValueAtTime(gain, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
-  } catch(e) {}
+/* ===================== TIMER ESTACIÓN ===================== */
+function startStationTimer(){
+  clearInterval(stTimer);
+  stTimer=setInterval(()=>{
+    if(paused)return;
+    S.stTime--;
+    if(S.stTime<=5&&S.stTime>0)sfx.tick();
+    updHUD();
+    if(S.stTime<=0){clearInterval(stTimer);
+      if(S.station<3) stationComplete(); else endGame('time');}
+  },1000);
 }
 
-function playCorrect() {
-  playBeep(523, 0.1);
-  setTimeout(() => playBeep(659, 0.1), 80);
-  setTimeout(() => playBeep(784, 0.2), 160);
+/* ===================== INICIO ===================== */
+function renderStart(){
+  hudR.style.display='none';stepper.style.display='none';
+  document.getElementById('combo').classList.remove('show');card.classList.remove('trapmode');
+  const lb=getLB(), top=lb.slice(0,3).map((r,i)=>`<div class="lb-row"><span class="rk">${i+1}</span><span class="nm">${esc(r.name)}</span><span class="sc">${r.score}</span></div>`).join('');
+  card.innerHTML=`
+    <div class="hero">
+      <div class="kick">⚡ Reto contable por estaciones ⚡</div>
+      <h2>CASH <span class="g">CLASH</span></h2>
+      <p>Recorre <b style="color:var(--gold)">3 estaciones</b> para dominar el Estado de Flujos de Efectivo por el <b style="color:var(--cyan)">método indirecto (NIC 7)</b>. Cada estación dura <b>5 minutos</b>. ¡Avanza sin quedarte sin vidas!</p>
+      <div class="route">
+        <div class="rstep"><div class="num">1</div><div><h4>Clasifica por actividades</h4><p>¿Operación, Inversión o Financiación? (8 partidas)</p></div><div class="tm">5:00</div></div>
+        <div class="rstep"><div class="num">2</div><div><h4>¿La partida suma o resta?</h4><p>El signo del ajuste sobre la utilidad neta. (8 partidas)</p></div><div class="tm">5:00</div></div>
+        <div class="rstep"><div class="num">3</div><div><h4>Arma el flujo completo</h4><p>Operación + Inversión + Financiación, un solo estado.</p></div><div class="tm">5:00</div></div>
+      </div>
+      <div class="minirules">
+        <span class="mr">❤️ 5 vidas (0 = GAME OVER)</span>
+        <span class="mr">🔥 Combos hasta x3</span>
+        <span class="mr">☠️ Trampas valen doble</span>
+        <span class="mr">🎁 Cofres sorpresa</span>
+      </div>
+      <div class="namewrap"><label>Tu nombre de jugador</label>
+        <input class="nameInput" id="nameInput" maxlength="16" placeholder="Ej: Andrea, Equipo 3…"></div>
+      ${top?`<div style="margin:14px 0 4px;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase">🏅 Mejores puntajes</div><div class="lb" style="max-width:340px;margin:0 auto">${top}</div>`:''}
+      <div style="margin-top:20px"><button class="btn full" onclick="startGame()">▸ ¡EMPEZAR LA RUTA!</button></div>
+    </div>`;
+  setTimeout(()=>{const n=document.getElementById('nameInput');if(n)n.focus()},200);
 }
 
-function playWrong() {
-  playBeep(200, 0.15, 'sawtooth');
-  setTimeout(() => playBeep(150, 0.2, 'sawtooth'), 120);
+function startGame(){
+  const n=(document.getElementById('nameInput')||{}).value||'';
+  reset();S.name=n.trim().slice(0,16)||'Anónimo';S.screen='play';
+  hudR.style.display='flex';stepper.style.display='flex';
+  stationIntro(1);
 }
 
-function playCombo() {
-  [523,659,784,1047].forEach((f,i) => setTimeout(() => playBeep(f, 0.15), i*60));
+/* ===================== INTRO DE ESTACIÓN ===================== */
+const STATIONS={
+  1:{tag:'cls',icon:'📂',title:'Clasifica por actividades',
+     desc:'Indica si cada partida pertenece a <b>Operación</b>, <b>Inversión</b>, <b>Financiación</b> o si es una transacción <b>no monetaria</b>. Resuelve <b>8 partidas</b> o agota los 5 minutos.'},
+  2:{tag:'adj',icon:'➕➖',title:'¿Suma o resta?',
+     desc:'Partiendo de la <b>utilidad neta</b>, decide si cada partida se <b>suma</b> o se <b>resta</b>. Resuelve <b>8 partidas</b> o agota los 5 minutos.'},
+  3:{tag:'bld',icon:'🧮',title:'Arma el flujo completo',
+     desc:'Construye <b>un solo</b> Estado de Flujos de Efectivo con sus tres secciones: <b>Operación</b>, <b>Inversión</b> y <b>Financiación</b>. Asigna el signo de cada partida y obtén la <b>variación neta de efectivo</b>.'}
+};
+function stationIntro(n){
+  S.station=n;paused=true;updStepper();updHUD();
+  document.getElementById('combo').classList.remove('show');card.classList.remove('trapmode');
+  const st=STATIONS[n];
+  card.innerHTML=`
+    <div class="hero">
+      <div class="bigicon">${st.icon}</div>
+      <div class="kick" style="color:var(--cyan)">Estación ${n} de 3 · ⏱️ 5:00</div>
+      <h2 style="font-size:28px">${st.title}</h2>
+      <p>${st.desc}</p>
+      <p style="font-size:12.5px;margin-top:8px">Vidas actuales: ${'❤️'.repeat(S.lives)||'—'} &nbsp;·&nbsp; Puntos: <b style="color:var(--lime)">${S.score}</b></p>
+      <div style="margin-top:20px"><button class="btn full" onclick="beginStation(${n})">▸ Comenzar estación ${n}</button></div>
+    </div>`;
+}
+function beginStation(n){
+  S.station=n;S.stTime=ST_TIME;S.stAns=0;S.stCor=0;S.combo=0;S._chest=false;paused=false;
+  updStepper();updHUD();
+  if(n===3){startFlow();}
+  else{S.queue=shuffle((n===1?CLS:ADJ).slice()).slice(0,8);S.qi=0;nextQuestion();}
+  startStationTimer();
 }
 
-// Input validation
-$('player-name-input').addEventListener('input', function() {
-  $('btn-start').disabled = this.value.trim().length < 2;
-});
-
-$('player-name-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && this.value.trim().length >= 2) startGame();
-});
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(id).classList.add('active');
+/* ===================== ESTACIONES 1 y 2 ===================== */
+function nextQuestion(){
+  if(S.stAns>0 && S.stAns%5===0 && !S._chest && S.qi<S.queue.length){S._chest=true;return renderChest();}
+  S._chest=false;
+  if(S.qi>=S.queue.length){ return stationComplete(); } // se respondieron las 8 preguntas
+  S.current=S.queue[S.qi++];renderQuestion();
 }
-
-function startGame() {
-  playerName = $('player-name-input').value.trim();
-  if (playerName.length < 2) return;
-  score = 0; timeLeft = TOTAL_TIME; correctAnswers = 0;
-  totalAttempts = 0; combo = 0; usedIndexes = [];
-  $('hdr-player').textContent = playerName;
-  $('score-display').textContent = '0';
-  updateTimerUI();
-  showScreen('screen-game');
-  nextQuestion();
-  startTimer();
-}
-
-function startTimer() {
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    if (timeLeft <= 0) { timeLeft = 0; endGame(); }
-    updateTimerUI();
-  }, 1000);
-}
-
-function updateTimerUI() {
-  $('timer-display').textContent = timeLeft;
-  const pct = timeLeft / TOTAL_TIME;
-  const circumference = 126;
-  const offset = circumference * (1 - pct);
-  $('timer-ring').style.strokeDashoffset = offset;
-  const ring = $('timer-ring');
-  if (pct > 0.5) ring.style.stroke = '#1e3a8a';
-  else if (pct > 0.25) ring.style.stroke = '#f59e0b';
-  else ring.style.stroke = '#dc2626';
-  $('progress-bar').style.width = (pct * 100) + '%';
-  $('progress-bar').style.background = pct > 0.5 ? '#1e3a8a' : pct > 0.25 ? '#f59e0b' : '#dc2626';
-}
-
-function pickAccount() {
-  if (usedIndexes.length === ACCOUNTS.length) usedIndexes = [];
-  let idx;
-  do { idx = Math.floor(Math.random() * ACCOUNTS.length); } while (usedIndexes.includes(idx));
-  usedIndexes.push(idx);
-  return ACCOUNTS[idx];
-}
-
-function nextQuestion() {
-  currentAccount = pickAccount();
-  step = 1;
-  renderStep();
-}
-
-function renderStep() {
-  const card = $('question-card');
-  const accent = { Activo:'#1e3a8a', Pasivo:'#7c3aed', Patrimonio:'#0f766e', Ingreso:'#15803d', Gasto:'#f59e0b' };
-  const acc = currentAccount;
-
-  $('account-name').textContent = acc.name;
-  $('account-hint').textContent = acc.hint;
-
-  const container = $('options-container');
-  container.innerHTML = '';
-  const selDisp = $('selected-group-display');
-  selDisp.style.display = 'none';
-
-  if (step === 1) {
-    $('step-indicator').textContent = 'PASO 1 — CLASIFICA EL GRUPO';
-    $('question-label').textContent = '¿A qué grupo contable pertenece?';
-    container.className = 'options-grid cols-5';
-    card.style.setProperty('--card-accent', '#1e3a8a');
-    card.querySelector('::before');
-    card.style.borderTop = '';
-    GROUPS.forEach(g => {
-      const btn = document.createElement('button');
-      btn.className = `option-btn ${g.cls}`;
-      btn.innerHTML = `<span class="option-icon">${g.icon}</span>${g.label}`;
-      btn.onclick = () => answerGroup(g.label);
-      container.appendChild(btn);
-    });
-  } else {
-    $('step-indicator').textContent = 'PASO 2 — DINÁMICA DEBE/HABER';
-    $('question-label').textContent = `Un AUMENTO en "${acc.name}" se registra en:`;
-    selDisp.style.display = 'block';
-    selDisp.innerHTML = `Grupo: <strong>${acc.group}</strong>`;
-    container.className = 'options-grid cols-2';
-    ['Debe', 'Haber'].forEach(dh => {
-      const btn = document.createElement('button');
-      btn.className = `option-btn opt-${dh.toLowerCase()}`;
-      btn.innerHTML = `<span class="option-icon">${dh === 'Debe' ? '⬅' : '➡'}</span>${dh}`;
-      btn.onclick = () => answerDebeHaber(dh);
-      container.appendChild(btn);
-    });
+function renderQuestion(){
+  const q=S.current,trap=!!q.trap,isCls=q.ty==='cls';
+  card.classList.toggle('trapmode',trap);
+  let tag=trap?`<span class="tag trap">☠️ Trampa · vale DOBLE</span>`
+    :(isCls?`<span class="tag cls">📂 Estación 1 · Actividades</span>`:`<span class="tag adj">➕➖ Estación 2 · Ajustes</span>`);
+  let heading,sub,opts;
+  if(isCls){
+    heading="¿En qué sección del flujo va?";sub="Operación, Inversión, Financiación… o ninguna.";
+    opts=`<div class="opts ${q.o4?'g4':'g3'}" id="opts">
+      <button class="opt" data-v="OP" onclick="answer('OP')"><span class="em">⚙️</span>Operación</button>
+      <button class="opt" data-v="INV" onclick="answer('INV')"><span class="em">🏭</span>Inversión</button>
+      <button class="opt" data-v="FIN" onclick="answer('FIN')"><span class="em">🏦</span>Financiación</button>
+      ${q.o4?`<button class="opt" data-v="NM" onclick="answer('NM')"><span class="em">🚫</span>No es flujo<small>no monetaria</small></button>`:''}
+    </div>`;
+  }else{
+    heading="Partiendo de la utilidad neta…";sub="¿Esta partida se SUMA o se RESTA?";
+    opts=`<div class="opts g2" id="opts">
+      <button class="opt" data-v="+" onclick="answer('+')"><span class="em">➕</span>Se SUMA</button>
+      <button class="opt" data-v="-" onclick="answer('-')"><span class="em">➖</span>Se RESTA</button>
+    </div>`;
   }
-
-  questionStartTime = Date.now();
+  card.innerHTML=`
+    <div class="qtimer"><i id="qbar"></i></div>
+    ${tag}
+    <h2 class="q">${heading}</h2><p class="q-sub">${sub}</p>
+    <div class="item ${trap?'trap':''}"><div class="lbl">Partida</div><div class="txt">${q.t}</div></div>
+    ${opts}
+    <div class="fb" id="fb"></div>
+    <div class="row" id="row" style="display:none"><button class="btn" id="nextBtn">Siguiente ▸</button></div>`;
+  startBonusBar();
 }
-
-function disableButtons() {
-  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+function startBonusBar(){
+  const bar=document.getElementById('qbar');
+  qDeadline=Date.now()+BONUS_WIN*1000;
+  bar.style.transition='none';bar.style.width='100%';void bar.offsetWidth;
+  bar.style.transition=`width ${BONUS_WIN}s linear`;bar.style.width='0%';
 }
+function bonusFrac(){return Math.max(0,(qDeadline-Date.now())/(BONUS_WIN*1000))}
 
-function answerGroup(selected) {
-  disableButtons();
-  totalAttempts++;
-  const correct = selected === currentAccount.group;
-  if (correct) {
-    correctAnswers++;
-    combo++;
-    const elapsed = (Date.now() - questionStartTime) / 1000;
-    let pts = elapsed < 3 ? 100 : 50;
-    if (combo > 0 && combo % 5 === 0) { pts *= 2; showComboBadge(); playCombo(); }
-    score += pts;
-    $('score-display').textContent = score;
-    showPointsPop(pts, true);
-    playCorrect();
-    showFeedback(true, `¡Correcto! "${currentAccount.name}" es ${currentAccount.group}`, '', () => {
-      step = 2;
-      renderStep();
-    });
-  } else {
-    combo = 0;
-    score = Math.max(0, score - 30);
-    timeLeft = Math.max(0, timeLeft - 5);
-    $('score-display').textContent = score;
-    $('combo-badge').classList.remove('show');
-    playWrong();
-    const exp = currentAccount.explanation;
-    showFeedback(false, `Incorrecto — Es ${currentAccount.group}`, exp, () => {
-      nextQuestion();
-    });
-    shakeCard();
+function answer(val){
+  const q=S.current,trap=!!q.trap,ok=q.a===val;
+  S.answered++;S.stAns++;
+  document.querySelectorAll('#opts .opt').forEach(b=>{b.disabled=true;
+    if(b.dataset.v===q.a)b.classList.add('ok');
+    if(b.dataset.v===val&&!ok)b.classList.add('no');
+    if(b.dataset.v!==q.a&&b.dataset.v!==val)b.classList.add('dim');});
+  const fb=document.getElementById('fb');
+  const nice={OP:'Operación',INV:'Inversión',FIN:'Financiación',NM:'No es flujo (no monetaria)','+':'Se suma (+)','-':'Se resta (−)'}[q.a];
+  if(ok){
+    S.combo++;S.correct++;S.stCor++;S.maxCombo=Math.max(S.maxCombo,S.combo);
+    const speed=Math.round(bonusFrac()*8);let pts=(10+speed);if(trap)pts*=2;pts=Math.round(pts*mult());
+    S.score+=pts;trap?sfx.trap():sfx.good();floatText('+'+pts,true);
+    fb.className='fb y show';
+    fb.innerHTML=`<div class="ft">✓ ¡Correcto! ${trap?'☠️ DOBLE · ':''}+${pts} pts ${mult()>1?'· x'+mult()+' racha':''}</div><p>${q.e}</p>`;
+  }else{
+    S.combo=0;const lifePen=trap?2:1;S.stTime=Math.max(0,S.stTime-(trap?10:5));S.lives=Math.max(0,S.lives-lifePen);
+    sfx.bad();floatText('−'+lifePen+'❤️',false);
+    fb.className='fb n show';
+    fb.innerHTML=`<div class="ft">✗ ¡Caíste! −${lifePen} vida${lifePen>1?'s':''} · respuesta: <b>${nice}</b></div><p>${q.e}</p>`;
   }
+  updHUD();
+  if(S.lives<=0){clearInterval(stTimer);return setTimeout(()=>endGame('defeat'),650);}
+  const row=document.getElementById('row');row.style.display='flex';
+  document.getElementById('nextBtn').onclick=()=>nextQuestion();
 }
 
-function answerDebeHaber(selected) {
-  disableButtons();
-  totalAttempts++;
-  const correct = selected === currentAccount.aumenta;
-  if (correct) {
-    correctAnswers++;
-    combo++;
-    const elapsed = (Date.now() - questionStartTime) / 1000;
-    let pts = elapsed < 3 ? 100 : 50;
-    if (combo > 0 && combo % 5 === 0) { pts *= 2; showComboBadge(); playCombo(); }
-    score += pts;
-    $('score-display').textContent = score;
-    showPointsPop(pts, true);
-    playCorrect();
-    showFeedback(true, `¡Perfecto! Aumenta por el ${currentAccount.aumenta}`, currentAccount.explanation, () => {
-      nextQuestion();
+/* ===================== COFRE ===================== */
+function renderChest(){
+  card.classList.remove('trapmode');paused=false; // el reloj sigue corriendo
+  card.innerHTML=`<div class="chest"><div class="icn">🎁</div><h3>¡Cofre sorpresa!</h3>
+    <p style="color:var(--muted);font-size:14px;max-width:380px;margin:0 auto 4px">No todos los cofres son lo que parecen 😈</p>
+    <div style="margin-top:18px"><button class="btn alt full" id="openChest">🔓 Abrir cofre</button></div></div>`;
+  document.getElementById('openChest').onclick=openChest;
+}
+function openChest(){
+  const rolls=[
+    {type:'pts',v:40,txt:'💰 +40 puntos'},{type:'pts',v:60,txt:'💎 +60 puntos'},
+    {type:'time',v:15,txt:'⏱️ +15 s a la estación'},{type:'time',v:20,txt:'⏱️ +20 s a la estación'},
+    {type:'life',v:1,txt:'❤️ +1 vida recuperada'},{type:'pts',v:50,txt:'⭐ +50 puntos'},
+    {type:'mt',v:12,txt:'😈 ¡Cofre falso! −12 s'},{type:'ml',v:1,txt:'😈 ¡Trampa! pierdes 1 vida'},
+  ];
+  const r=rolls[Math.floor(Math.random()*rolls.length)];
+  if(r.type==='pts')S.score+=r.v;else if(r.type==='time')S.stTime+=r.v;
+  else if(r.type==='life')S.lives=Math.min(MAX_LIVES,S.lives+r.v);
+  else if(r.type==='mt')S.stTime=Math.max(1,S.stTime-r.v);
+  else if(r.type==='ml')S.lives=Math.max(0,S.lives-r.v);
+  (r.type==='mt'||r.type==='ml')?sfx.trap():sfx.chest();updHUD();
+  if(S.lives<=0){clearInterval(stTimer);card.innerHTML=`<div class="chest"><div class="icn">💥</div><h3 style="color:var(--magenta)">${r.txt}</h3></div>`;return setTimeout(()=>endGame('defeat'),900);}
+  const good=r.type!=='mt'&&r.type!=='ml';
+  card.innerHTML=`<div class="chest"><div class="icn">${good?'✨':'💥'}</div>
+    <h3 style="color:${good?'var(--lime)':'var(--magenta)'}">${r.txt}</h3>
+    <div style="margin-top:18px"><button class="btn full" onclick="nextQuestion()">Continuar ▸</button></div></div>`;
+}
+
+/* ===================== ESTACIÓN 3 · ARMAR EL FLUJO COMPLETO ===================== */
+const SECT_META={OP:{icon:'⚙️',color:'var(--cyan)',sub:'Flujo de operación'},
+                 INV:{icon:'🏭',color:'var(--violet)',sub:'Flujo de inversión'},
+                 FIN:{icon:'🏦',color:'var(--gold)',sub:'Flujo de financiación'}};
+function startFlow(){
+  S.flowPicks=FULL_FLOW.sections.map(s=>s.lines.map(()=>null));
+  renderFlow();
+}
+function flowTotals(useCorrect){
+  let subs=[],grand=0;
+  FULL_FLOW.sections.forEach((s,si)=>{
+    let sub=s.start;
+    s.lines.forEach((ln,li)=>{
+      const sg=useCorrect?ln.sign:S.flowPicks[si][li];
+      if(sg==='+')sub+=ln.amt;else if(sg==='-')sub-=ln.amt;
     });
-  } else {
-    combo = 0;
-    score = Math.max(0, score - 30);
-    timeLeft = Math.max(0, timeLeft - 5);
-    $('score-display').textContent = score;
-    $('combo-badge').classList.remove('show');
-    playWrong();
-    showFeedback(false, `Error — Aumenta por el ${currentAccount.aumenta}`, currentAccount.explanation, () => {
-      nextQuestion();
-    });
-    shakeCard();
-  }
-}
-
-function showComboBadge() {
-  const badge = $('combo-badge');
-  badge.classList.add('show');
-  badge.textContent = `🔥 COMBO ×${Math.floor(combo/5)*2}`;
-  setTimeout(() => badge.classList.remove('show'), 3000);
-}
-
-function shakeCard() {
-  const card = $('question-card');
-  card.classList.add('shake');
-  setTimeout(() => card.classList.remove('shake'), 500);
-}
-
-function showFeedback(isCorrect, title, msg, callback) {
-  const overlay = $('feedback-overlay');
-  const box = $('feedback-box');
-  $('feedback-icon').textContent = isCorrect ? '✓' : '✗';
-  $('feedback-title').textContent = title;
-  $('feedback-msg').textContent = msg;
-  box.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
-  overlay.classList.add('show');
-  const delay = isCorrect ? 1000 : 2200;
-  setTimeout(() => {
-    overlay.classList.remove('show');
-    setTimeout(callback, 200);
-  }, delay);
-}
-
-function showPointsPop(pts, positive) {
-  const el = document.createElement('div');
-  el.className = 'points-pop';
-  el.textContent = (positive ? '+' : '-') + pts;
-  el.style.color = positive ? '#16a34a' : '#dc2626';
-  el.style.top = '80px';
-  el.style.right = '20px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1200);
-}
-
-function endGame() {
-  clearInterval(timerInterval);
-  showScreen('screen-final');
-
-  const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
-
-  $('cert-name').textContent = playerName;
-  $('final-score').textContent = score;
-  $('final-accuracy').textContent = accuracy + '%';
-  $('final-correct').textContent = correctAnswers;
-  $('final-total').textContent = totalAttempts;
-
-  setTimeout(() => {
-    $('accuracy-fill').style.width = accuracy + '%';
-  }, 300);
-
-  let grade, gradeMsg, gradeColor;
-  if (accuracy >= 90 && score >= 600) { grade = 'S'; gradeMsg = '¡Maestro Contable!'; gradeColor = '#1e3a8a'; }
-  else if (accuracy >= 80 && score >= 400) { grade = 'A'; gradeMsg = '¡Excelente dominio!'; gradeColor = '#15803d'; }
-  else if (accuracy >= 65) { grade = 'B'; gradeMsg = '¡Muy buen trabajo!'; gradeColor = '#0f766e'; }
-  else if (accuracy >= 50) { grade = 'C'; gradeMsg = 'Buen intento, sigue practicando'; gradeColor = '#f59e0b'; }
-  else { grade = 'D'; gradeMsg = 'Necesitas repasar los conceptos'; gradeColor = '#dc2626'; }
-
-  $('grade-letter').textContent = grade;
-  $('grade-letter').style.color = gradeColor;
-  $('grade-msg').textContent = gradeMsg;
-  const gradeBox = $('grade-box');
-  gradeBox.style.background = gradeColor + '15';
-  gradeBox.style.border = `2px solid ${gradeColor}40`;
-}
-
-function copyResult() {
-  const accuracy = totalAttempts > 0 ? Math.round((correctAnswers / totalAttempts) * 100) : 0;
-  const grade = $('grade-letter').textContent;
-  const msg = $('grade-msg').textContent;
-  const text =
-    `📊 AUDITMASTER — RESULTADO DE EVALUACIÓN\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `👤 Estudiante: ${playerName}\n` +
-    `⭐ Puntaje: ${score} pts\n` +
-    `🎯 Precisión: ${accuracy}%\n` +
-    `✅ Correctas: ${correctAnswers} / ${totalAttempts} intentos\n` +
-    `🏆 Calificación: ${grade} — ${msg}\n` +
-    `━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `📅 ${new Date().toLocaleDateString('es-EC', {day:'numeric',month:'long',year:'numeric'})}`;
-
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = $('btn-copy');
-    btn.textContent = '✓ ¡Copiado!';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = '📋 Copiar Resultado';
-      btn.classList.remove('copied');
-    }, 2500);
-  }).catch(() => {
-    prompt("Copia este texto:", text);
+    subs[si]=sub;grand+=sub;
   });
+  return {subs,grand};
+}
+function renderFlow(){
+  card.classList.remove('trapmode');
+  let html='';
+  FULL_FLOW.sections.forEach((s,si)=>{
+    const m=SECT_META[s.key];
+    html+=`<div style="margin:16px 0 2px;font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:${m.color}">${m.icon} ${s.title} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${s.hint}</span></div>`;
+    if(s.startLabel){
+      html+=`<div class="build-row"><div class="d"><b>${s.startLabel}</b></div><div class="amt" style="color:var(--gold)">${money(s.start)}</div></div>`;
+    }
+    s.lines.forEach((ln,li)=>{
+      html+=`<div class="build-row"><div class="d">${ln.d}</div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="amt">${money(ln.amt)}</span>
+          <div class="signs">
+            <button class="sgn" id="p${si}_${li}" onclick="pickFlow(${si},${li},'+')">+</button>
+            <button class="sgn" id="m${si}_${li}" onclick="pickFlow(${si},${li},'-')">−</button>
+          </div></div></div>`;
+    });
+    html+=`<div class="build-row" style="border-top:1px solid var(--line)"><div class="d" style="font-weight:700">${m.sub}</div><div class="amt" id="sub${si}" style="color:${m.color};font-weight:700">${money(s.start)}</div></div>`;
+  });
+  card.innerHTML=`
+    <span class="tag bld">🧮 Estación 3 · Flujo completo</span>
+    <h2 class="q">Arma el Estado de Flujos de Efectivo</h2>
+    <p class="q-sub">Elige el signo de cada partida en las tres secciones. Los subtotales y la variación neta se calculan solos.</p>
+    ${html}
+    <div class="runtot"><span class="l">Variación neta de efectivo</span><span class="v" id="grand">${money(FULL_FLOW.net)}</span></div>
+    <div class="fb" id="fb"></div>
+    <div class="row"><button class="btn" id="checkBtn" disabled>Verificar flujo ✓</button></div>`;
+  document.getElementById('checkBtn').onclick=verifyFlow;
+}
+function pickFlow(si,li,sg){
+  S.flowPicks[si][li]=sg;
+  document.getElementById('p'+si+'_'+li).classList.toggle('selp',sg==='+');
+  document.getElementById('p'+si+'_'+li).classList.remove('selm');
+  document.getElementById('m'+si+'_'+li).classList.toggle('selm',sg==='-');
+  document.getElementById('m'+si+'_'+li).classList.remove('selp');
+  const {subs,grand}=flowTotals(false);
+  subs.forEach((v,i)=>document.getElementById('sub'+i).textContent=money(v));
+  document.getElementById('grand').textContent=money(grand);
+  const done=S.flowPicks.every(sec=>sec.every(p=>p!==null));
+  document.getElementById('checkBtn').disabled=!done;
+}
+function verifyFlow(){
+  let correct=0,totalLines=0;
+  FULL_FLOW.sections.forEach((s,si)=>s.lines.forEach((ln,li)=>{
+    totalLines++;
+    const ok=S.flowPicks[si][li]===ln.sign;if(ok)correct++;
+    const p=document.getElementById('p'+si+'_'+li),m=document.getElementById('m'+si+'_'+li);
+    p.disabled=true;m.disabled=true;
+    const right=ln.sign==='+'?p:m;right.style.boxShadow='0 0 0 2px var(--lime)';right.style.borderColor='var(--lime)';
+    if(!ok){const ch=S.flowPicks[si][li]==='+'?p:m;ch.style.boxShadow='0 0 0 2px var(--red)';ch.style.borderColor='var(--red)';}
+  }));
+  const {subs,grand}=flowTotals(true);
+  subs.forEach((v,i)=>document.getElementById('sub'+i).textContent=money(v));
+  document.getElementById('grand').textContent=money(grand);
+  const all=correct===totalLines;
+  S.answered++;if(all)S.correct++;
+  let pts=correct*12+(all?60:0);S.score+=pts;
+  if(!all){S.lives=Math.max(0,S.lives-1);sfx.bad();}else sfx.level();
+  document.getElementById('checkBtn').disabled=true;
+  floatText('+'+pts,true);updHUD();
+  const fb=document.getElementById('fb');
+  fb.className='fb '+(all?'y':'n')+' show';
+  fb.innerHTML=`<div class="ft">${all?'✓ ¡Flujo completo correcto!':'✗ Revisa los signos'} +${pts} pts</div>
+    <p>Acertaste <b>${correct}/${totalLines}</b> signos. Operación ${money(subs[0])} · Inversión ${money(subs[1])} · Financiación ${money(subs[2])}. <b>Variación neta de efectivo: ${money(grand)}</b>.${all?'':' (Fallar te costó 1 vida.)'}</p>`;
+  if(S.lives<=0){clearInterval(stTimer);return setTimeout(()=>endGame('defeat'),800);}
+  const row=card.querySelector('.row');
+  row.innerHTML=`<button class="btn" onclick="endGame('time')">Finalizar ruta ▸</button>`;
 }
 
-function replayGame() {
-  $('player-name-input').value = playerName;
-  $('btn-start').disabled = false;
-  showScreen('screen-intro');
+/* ===================== ESTACIÓN COMPLETADA ===================== */
+function stationComplete(){
+  clearInterval(stTimer);paused=true;sfx.level();
+  S.lives=Math.min(MAX_LIVES,S.lives+1); // recompensa por avanzar
+  const bonus=40;S.score+=bonus;
+  const acc=S.stAns?Math.round(S.stCor/S.stAns*100):0;
+  updStepper();updHUD();document.getElementById('combo').classList.remove('show');card.classList.remove('trapmode');
+  const next=S.station+1;
+  card.innerHTML=`
+    <div class="hero">
+      <div class="bigicon">🏁</div>
+      <h2 style="font-size:28px;color:var(--lime)">¡Estación ${S.station} superada!</h2>
+      <p>Buen trabajo. Recibes <b style="color:var(--gold)">+${bonus} pts</b> y recuperas <b>❤️ 1 vida</b>.</p>
+      <div class="end-grid">
+        <div class="s"><div class="v" style="color:var(--lime)">${S.score}</div><div class="l">Puntos</div></div>
+        <div class="s"><div class="v">${acc}%</div><div class="l">Aciertos est.</div></div>
+        <div class="s"><div class="v">${'❤️'.repeat(S.lives)||'—'}</div><div class="l">Vidas</div></div>
+      </div>
+      <div style="margin-top:6px"><button class="btn full" onclick="stationIntro(${next})">Siguiente estación ▸</button></div>
+    </div>`;
 }
+
+/* ===================== UTILIDADES UI ===================== */
+function floatText(txt,good){const el=document.createElement('div');el.className='float';el.textContent=txt;
+  el.style.color=good?'var(--lime)':'var(--red)';el.style.left=(window.innerWidth/2-20)+'px';
+  el.style.top=(window.innerHeight/2-40)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1000);}
+
+/* ===================== LEADERBOARD ===================== */
+let MEM_LB=[];
+function getLB(){try{const r=localStorage.getItem('cashclash_lb');if(r)return JSON.parse(r);}catch(e){}return MEM_LB;}
+function saveLB(lb){MEM_LB=lb;try{localStorage.setItem('cashclash_lb',JSON.stringify(lb));}catch(e){}}
+
+/* ===================== FIN ===================== */
+function endGame(outcome){
+  outcome=outcome||'time';clearInterval(stTimer);S.screen='end';sfx.end();
+  document.getElementById('combo').classList.remove('show');card.classList.remove('trapmode');
+  let lb=getLB();const entry={name:S.name,score:S.score,date:Date.now()};
+  lb.push(entry);lb.sort((a,b)=>b.score-a.score);lb=lb.slice(0,10);saveLB(lb);
+  const myRank=lb.findIndex(r=>r===entry)+1, acc=S.answered?Math.round(S.correct/S.answered*100):0;
+  const p=lb.slice(0,3);
+  const podium=`<div class="podium">
+    ${p[1]?`<div class="col"><div class="nm">${esc(p[1].name)}</div><div class="sc">${p[1].score}</div><div class="bar3 b2">🥈</div></div>`:''}
+    ${p[0]?`<div class="col"><div class="nm">${esc(p[0].name)}</div><div class="sc">${p[0].score}</div><div class="bar3 b1">🥇</div></div>`:''}
+    ${p[2]?`<div class="col"><div class="nm">${esc(p[2].name)}</div><div class="sc">${p[2].score}</div><div class="bar3 b3">🥉</div></div>`:''}</div>`;
+  const rows=lb.map((r,i)=>`<div class="lb-row ${r===entry?'me':''}"><span class="rk">${i+1}</span><span class="nm">${esc(r.name)}${r===entry?' (tú)':''}</span><span class="sc">${r.score}</span></div>`).join('');
+  let title,emoji,banner;
+  if(outcome==='defeat'){
+    title="GAME OVER";emoji="💀";
+    banner=`<p style="color:#ffb3c1;font-size:13px;max-width:440px;margin:6px auto 0;line-height:1.5">Te quedaste sin vidas en la <b>Estación ${S.station}</b>. Recuerda la regla de signos: <b style="color:var(--gold)">suman</b> los gastos no monetarios y los aumentos de pasivos; <b style="color:var(--gold)">restan</b> los aumentos de activos corrientes y las ganancias en venta. ¡Vuelve por la revancha!</p>`;
+  }else{
+    banner=`<p style="color:var(--lime);font-size:13px;margin:6px auto 0">🏆 ¡Completaste las 3 estaciones de la ruta!</p>`;
+    if(myRank===1){title="¡CAMPEÓN DE LA RUTA!";emoji="👑"}
+    else if(S.score>=400){title="¡Maestro tesorero!";emoji="🏆"}
+    else if(S.score>=250){title="¡Gran recorrido!";emoji="🌟"}
+    else {title="¡Ruta completada!";emoji="💪"}
+  }
+  card.innerHTML=`
+    <div class="hero">
+      <div style="font-size:60px;line-height:1">${emoji}</div>
+      <h2 style="font-size:30px;margin:6px 0 4px;${outcome==='defeat'?'color:var(--red)':''}">${title}</h2>
+      <p style="margin-bottom:2px">${esc(S.name)}, terminaste en el puesto <b style="color:var(--gold)">#${myRank}</b></p>
+      ${banner}
+      <div class="end-grid">
+        <div class="s"><div class="v" style="color:var(--lime)">${S.score}</div><div class="l">Puntos</div></div>
+        <div class="s"><div class="v">${acc}%</div><div class="l">Aciertos</div></div>
+        <div class="s"><div class="v">x${S.maxCombo}</div><div class="l">Mejor racha</div></div>
+      </div>
+      ${podium}
+      <div style="font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:10px 0 6px">🏅 Tabla de líderes</div>
+      <div class="lb" style="max-width:380px;margin:0 auto">${rows}</div>
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" onclick="startGame()">↻ Revancha</button>
+        <button class="btn ghost" onclick="renderStart()">Cambiar jugador</button>
+      </div>
+    </div>`;
+}
+
+document.getElementById('muteBtn').onclick=function(){muted=!muted;this.textContent=muted?'🔇':'🔊';};
+reset();renderStart();
 </script>
 </body>
 </html>
